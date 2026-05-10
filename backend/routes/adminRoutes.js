@@ -6,6 +6,7 @@ const {
   loginAdmin,
   generateLicense,
   getAllLicenses,
+  revokeLicense,
   getDashboardStats
 } = require('../controllers/adminController');
 
@@ -23,6 +24,12 @@ router.get(
   '/licenses',
   verifyAdminToken,
   getAllLicenses
+);
+
+router.put(
+  '/revoke-license/:id',
+  verifyAdminToken,
+  revokeLicense
 );
 
 router.get(
