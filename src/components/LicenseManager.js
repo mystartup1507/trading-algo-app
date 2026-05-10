@@ -40,7 +40,7 @@ export default function LicenseManager() {
 
     fetchLicenses();
 
-  }, []);
+  }, [navigate]);
 
   const generateLicense = async (e) => {
 
