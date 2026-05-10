@@ -2,22 +2,33 @@ const express = require('express');
 
 const router = express.Router();
 
-const verifyAdmin = require('../middleware/authMiddleware');
-
 const {
-  createLicense,
-  getAllLicenses
+  loginAdmin,
+  generateLicense,
+  getAllLicenses,
+  getDashboardStats
 } = require('../controllers/adminController');
+
+const verifyAdminToken = require('../middleware/authMiddleware');
+
+router.post('/login', loginAdmin);
 
 router.post(
   '/generate-license',
-  verifyAdmin,
-  createLicense
+  verifyAdminToken,
+  generateLicense
 );
+
 router.get(
   '/licenses',
-  verifyAdmin,
+  verifyAdminToken,
   getAllLicenses
+);
+
+router.get(
+  '/dashboard-stats',
+  verifyAdminToken,
+  getDashboardStats
 );
 
 module.exports = router;

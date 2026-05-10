@@ -1,32 +1,62 @@
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
+
 const supabase = require('../config/supabase');
 
-const generateLicenseKey = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const loginAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  let result = 'JD-ALGO-';
+    const { data: admin, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .single();
 
-  for (let i = 0; i < 4; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (error || !admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: admin.id,
+        email: admin.email,
+        role: admin.role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '7d'
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      token,
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        role: admin.role
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
-
-  result += '-';
-
-  for (let i = 0; i < 4; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-
-  return result;
 };
 
-const createLicense = async (req, res) => {
+const generateLicense = async (req, res) => {
   try {
-    const {
-      userEmail,
-      plan,
-      expiresAt
-    } = req.body;
+    const { userEmail, plan, expiresAt } = req.body;
 
-    const licenseKey = generateLicenseKey();
+    const licenseKey =
+      'JD-ALGO-' +
+      uuidv4().split('-')[0].toUpperCase();
 
     const { data, error } = await supabase
       .from('licenses')
@@ -34,11 +64,11 @@ const createLicense = async (req, res) => {
         {
           license_key: licenseKey,
           user_email: userEmail,
-          plan: plan || 'premium',
-          status: 'active',
+          plan,
+          expires_at: expiresAt,
           is_active: true,
-          max_devices: 1,
-          expires_at: expiresAt
+          status: 'active',
+          max_devices: 1
         }
       ])
       .select();
@@ -50,56 +80,96 @@ const createLicense = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: 'License created successfully',
       license: data[0]
     });
-
-  } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: error.message
     });
   }
 };
 
 const getAllLicenses = async (req, res) => {
-
   try {
-
     const { data, error } = await supabase
       .from('licenses')
       .select('*')
-      .order('id', { ascending: false });
+      .order('created_at', {
+        ascending: false
+      });
 
     if (error) {
-      throw error;
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
       licenses: data
     });
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: 'Server Error'
+      message: error.message
     });
-
   }
+};
 
+const getDashboardStats = async (req, res) => {
+  try {
+    const { data: licenses, error } = await supabase
+      .from('licenses')
+      .select('*');
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    const totalLicenses = licenses.length;
+
+    const activeLicenses = licenses.filter(
+      (item) => item.is_active === true
+    ).length;
+
+    const expiredLicenses = licenses.filter(
+      (item) => {
+        if (!item.expires_at) return false;
+
+        return (
+          new Date(item.expires_at) <
+          new Date()
+        );
+      }
+    ).length;
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalLicenses,
+        activeLicenses,
+        expiredLicenses
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
 module.exports = {
-  createLicense,
-  getAllLicenses
+  loginAdmin,
+  generateLicense,
+  getAllLicenses,
+  getDashboardStats
 };
-
-
