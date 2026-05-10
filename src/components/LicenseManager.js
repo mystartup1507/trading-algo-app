@@ -18,7 +18,7 @@ export default function LicenseManager() {
     try {
 
       const res = await axios.get(
-        'http://localhost:5000/api/admin/licenses',
+        'https://trading-algo-app.onrender.com/api/admin/licenses',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -49,7 +49,7 @@ export default function LicenseManager() {
     try {
 
       await axios.post(
-        'http://localhost:5000/api/admin/generate-license',
+        'https://trading-algo-app.onrender.com/api/admin/generate-license',
         formData,
         {
           headers: {

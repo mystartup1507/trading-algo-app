@@ -23,7 +23,7 @@ export default function AdminDashboard() {
         const token = localStorage.getItem('adminToken');
 
         const response = await fetch(
-          'http://localhost:5000/api/admin/licenses',
+          'https://trading-algo-app.onrender.com/api/admin/licenses',
           {
             headers: {
               Authorization: `Bearer ${token}`

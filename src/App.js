@@ -2,7 +2,8 @@
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
+  Navigate
 } from 'react-router-dom';
 
 import AdminLogin from './pages/AdminLogin';
@@ -16,6 +17,8 @@ function App() {
 
       <Routes>
 
+        <Route path="/" element={<Navigate to="/admin-login" />} />
+
         <Route
           path="/admin-login"
           element={<AdminLogin />}
@@ -24,7 +27,8 @@ function App() {
         <Route
   path="/admin-dashboard"
   element={<AdminDashboard />}
-/>
+/>  
+     
 
       </Routes>
 
