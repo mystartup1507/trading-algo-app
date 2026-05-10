@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.glass {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.neumorph {
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary {
+  @apply px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 hover:scale-105;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3));
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
