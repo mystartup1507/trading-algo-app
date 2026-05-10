@@ -1,13 +1,14 @@
-
 import {
   BrowserRouter,
   Routes,
-  Route,
-  Navigate
+  Route
 } from 'react-router-dom';
 
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
+import ClientActivation
+from './pages/ClientActivation';
+
+import ClientDashboard
+from './pages/ClientDashboard';
 
 function App() {
 
@@ -17,18 +18,19 @@ function App() {
 
       <Routes>
 
-        <Route path="/" element={<Navigate to="/admin-login" />} />
-
         <Route
-          path="/admin-login"
-          element={<AdminLogin />}
+          path="/"
+          element={
+            <ClientActivation />
+          }
         />
 
         <Route
-  path="/admin-dashboard"
-  element={<AdminDashboard />}
-/>  
-     
+          path="/dashboard"
+          element={
+            <ClientDashboard />
+          }
+        />
 
       </Routes>
 
