@@ -3,6 +3,19 @@ import React, {
   useState
 } from 'react';
 
+import {
+  Activity,
+  Wifi,
+  ShieldCheck,
+  Server,
+  Wallet,
+  TrendingUp,
+  Clock3,
+  LogOut,
+  PlugZap,
+  Unplug
+} from 'lucide-react';
+
 const ClientDashboard = () => {
 
   const [brokerConnected, setBrokerConnected] =
@@ -270,229 +283,167 @@ const ClientDashboard = () => {
 
   return (
 
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
 
-      <header className="border-b border-purple-600 px-10 py-6 bg-zinc-950">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#7c3aed22,transparent_25%),radial-gradient(circle_at_bottom_right,#06b6d422,transparent_25%)]"></div>
 
-        <div className="flex justify-between items-center">
+      <div className="relative z-10">
 
-          <div>
+        <header className="border-b border-purple-500/30 backdrop-blur-xl bg-zinc-950/70 px-8 py-6 sticky top-0 z-50">
 
-            <h1 className="text-5xl font-bold text-purple-400">
-              Welcome to JD-Algo
-            </h1>
+          <div className="flex items-center justify-between">
 
-            <p className="text-zinc-400 mt-2">
-              AI Automated Trading Terminal
-            </p>
+            <div>
+
+              <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 text-transparent bg-clip-text">
+                JD-Algo
+              </h1>
+
+              <p className="text-zinc-400 mt-2 text-lg">
+                AI Powered Trading Infrastructure
+              </p>
+
+            </div>
+
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl transition-all duration-300 shadow-lg shadow-red-600/30"
+            >
+              <LogOut size={20} />
+              Logout
+            </button>
 
           </div>
 
-          <button
-            onClick={logout}
-            className="bg-red-600 px-6 py-3 rounded-xl"
-          >
-            Logout
-          </button>
+        </header>
 
-        </div>
+        <main className="p-8 space-y-8">
 
-      </header>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 
-      <main className="flex-1 p-8 overflow-auto">
+            <div className="bg-zinc-900/60 border border-green-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-green-500/10">
 
-        <div className="grid grid-cols-5 gap-4 mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-zinc-400 text-sm">
+                  Broker
+                </h3>
 
-          <div className="bg-zinc-900 border border-green-600 rounded-2xl p-4 text-center">
-            <p className="text-zinc-400 text-sm mb-2">
-              Broker
-            </p>
+                <PlugZap className="text-green-400" />
+              </div>
 
-            <p className="text-green-400 font-bold text-lg">
-              {brokerConnected
-                ? 'CONNECTED'
-                : 'DISCONNECTED'}
-            </p>
-          </div>
+              <p className={`text-2xl font-bold ${brokerConnected ? 'text-green-400' : 'text-red-400'}`}>
+                {brokerConnected
+                  ? 'CONNECTED'
+                  : 'DISCONNECTED'}
+              </p>
 
-          <div className="bg-zinc-900 border border-purple-600 rounded-2xl p-4 text-center">
-            <p className="text-zinc-400 text-sm mb-2">
-              Algo Engine
-            </p>
+            </div>
 
-            <p className="text-red-400 font-bold text-lg">
-              STOPPED
-            </p>
-          </div>
+            <div className="bg-zinc-900/60 border border-purple-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-purple-500/10">
 
-          <div className="bg-zinc-900 border border-yellow-600 rounded-2xl p-4 text-center">
-            <p className="text-zinc-400 text-sm mb-2">
-              Market Feed
-            </p>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-zinc-400 text-sm">
+                  Algo Engine
+                </h3>
 
-            <p className="text-yellow-400 font-bold text-lg">
-              LIVE
-            </p>
-          </div>
+                <Activity className="text-purple-400" />
+              </div>
 
-          <div className="bg-zinc-900 border border-blue-600 rounded-2xl p-4 text-center">
-            <p className="text-zinc-400 text-sm mb-2">
-              License
-            </p>
+              <p className="text-2xl font-bold text-red-400">
+                STOPPED
+              </p>
 
-            <p className="text-blue-400 font-bold text-lg">
-              ACTIVE
-            </p>
-          </div>
+            </div>
 
-          <div className="bg-zinc-900 border border-red-600 rounded-2xl p-4 text-center">
-            <p className="text-zinc-400 text-sm mb-2">
-              Server
-            </p>
+            <div className="bg-zinc-900/60 border border-yellow-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-yellow-500/10">
 
-            <p className="text-red-400 font-bold text-lg">
-              HEALTHY
-            </p>
-          </div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-zinc-400 text-sm">
+                  Market Feed
+                </h3>
 
-        </div>
+                <Wifi className="text-yellow-400" />
+              </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-8">
+              <p className="text-2xl font-bold text-yellow-400">
+                LIVE
+              </p>
 
-          <div className="bg-zinc-900 border border-green-600 rounded-3xl p-8">
+            </div>
 
-            <h2 className="text-3xl font-bold mb-6 text-green-400">
-              Broker Connection Center
-            </h2>
+            <div className="bg-zinc-900/60 border border-blue-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-blue-500/10">
 
-            <div className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-zinc-400 text-sm">
+                  License
+                </h3>
 
-              <input
-                type="text"
-                placeholder="Angel Client ID"
-                value={connectionData.clientId}
-                onChange={(e) =>
-                  setConnectionData({
-                    ...connectionData,
-                    clientId:
-                      e.target.value
-                  })
-                }
-                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
-              />
+                <ShieldCheck className="text-blue-400" />
+              </div>
 
-              <input
-                type="password"
-                placeholder="4 Digit PIN"
-                value={connectionData.password}
-                onChange={(e) =>
-                  setConnectionData({
-                    ...connectionData,
-                    password:
-                      e.target.value
-                  })
-                }
-                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
-              />
+              <p className="text-2xl font-bold text-blue-400">
+                ACTIVE
+              </p>
 
-              <input
-                type="text"
-                placeholder="Current TOTP"
-                value={connectionData.totp}
-                onChange={(e) =>
-                  setConnectionData({
-                    ...connectionData,
-                    totp:
-                      e.target.value
-                  })
-                }
-                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
-              />
+            </div>
 
-              {
-                brokerConnected
-                  ? (
-                    <button
-                      onClick={disconnectBroker}
-                      className="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl text-lg font-bold"
-                    >
-                      Disconnect Broker
-                    </button>
-                  )
-                  : (
-                    <button
-                      onClick={connectBroker}
-                      className="w-full bg-green-600 hover:bg-green-700 p-4 rounded-xl text-lg font-bold"
-                    >
-                      Connect Broker
-                    </button>
-                  )
-              }
+            <div className="bg-zinc-900/60 border border-red-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-red-500/10">
+
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-zinc-400 text-sm">
+                  Server
+                </h3>
+
+                <Server className="text-red-400" />
+              </div>
+
+              <p className="text-2xl font-bold text-red-400">
+                HEALTHY
+              </p>
 
             </div>
 
           </div>
 
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <div className="grid grid-cols-4 gap-6 mb-8">
+            <div className="bg-zinc-900/60 border border-green-500/30 backdrop-blur-2xl rounded-[32px] p-8 shadow-2xl shadow-green-500/10">
 
-          <div className="bg-zinc-900 border border-green-500 rounded-2xl p-6">
-            <h3 className="text-zinc-400 mb-3">
-              Today P/L
-            </h3>
+              <h2 className="text-4xl font-bold text-green-400 mb-8">
+                Broker Connection
+              </h2>
 
-            <p className="text-4xl font-bold text-green-400">
-              ₹{runningPL.toLocaleString()}
-            </p>
-          </div>
+              <div className="space-y-5">
 
-          <div className="bg-zinc-900 border border-cyan-500 rounded-2xl p-6">
+                <input
+                  type="text"
+                  placeholder="Angel Client ID"
+                  value={connectionData.clientId}
+                  onChange={(e) =>
+                    setConnectionData({
+                      ...connectionData,
+                      clientId:
+                        e.target.value
+                    })
+                  }
+                  className="w-full bg-zinc-800/70 border border-zinc-700 focus:border-green-400 rounded-2xl p-5 outline-none text-lg"
+                />
 
-            <h3 className="text-zinc-400 mb-3">
-              Available Balance
-            </h3>
+                <input
+                  type="password"
+                  placeholder="4 Digit PIN"
+                  value={connectionData.password}
+                  onChange={(e) =>
+                    setConnectionData({
+                      ...connectionData,
+                      password:
+                        e.target.value
+                    })
+                  }
+                  className="w-full bg-zinc-800/70 border border-zinc-700 focus:border-green-400 rounded-2xl p-5 outline-none text-lg"
+                />
 
-            <p className="text-4xl font-bold text-cyan-400">
-              ₹{Number(availableBalance).toLocaleString()}
-            </p>
-
-          </div>
-
-          <div className="bg-zinc-900 border border-yellow-500 rounded-2xl p-6">
-            <h3 className="text-zinc-400 mb-3">
-              Running Trades
-            </h3>
-
-            <p className="text-4xl font-bold text-yellow-400">
-              {runningTrades}
-            </p>
-          </div>
-
-          <div className="bg-zinc-900 border border-purple-500 rounded-2xl p-6">
-            <h3 className="text-zinc-400 mb-3">
-              Current Time
-            </h3>
-
-            <p className="text-2xl font-bold text-purple-400">
-              {currentTime}
-            </p>
-          </div>
-
-        </div>
-
-      </main>
-
-      <footer className="border-t border-zinc-800 text-center py-5 text-zinc-500 bg-zinc-950">
-
-        Powered by Xyca Technologies Private Limited
-
-      </footer>
-
-    </div>
-
-  );
-
-};
-
-export default ClientDashboard;
+                <input
+                  type="text"
+                  placeholder="Current TOTP"
+                  value={connectionData.totp}
