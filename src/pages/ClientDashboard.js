@@ -75,17 +75,17 @@ const ClientDashboard = () => {
   const [currentTime, setCurrentTime] =
     useState('');
 
-const [runningPL, setRunningPL] =
-  useState(0);
+  const [runningPL, setRunningPL] =
+    useState(0);
 
-const [availableBalance, setAvailableBalance] =
-  useState(0);
+  const [availableBalance, setAvailableBalance] =
+    useState(0);
 
-const [runningTrades, setRunningTrades] =
-  useState(0);
+  const [runningTrades, setRunningTrades] =
+    useState(0);
 
-const [orderBook, setOrderBook] =
-  useState([]);
+  const [orderBook, setOrderBook] =
+    useState([]);
 
   const [connectionData, setConnectionData] =
     useState({
@@ -140,6 +140,10 @@ const [orderBook, setOrderBook] =
               'licenseKey'
             );
 
+            localStorage.removeItem(
+              'licenseActivated'
+            );
+
             window.location.href = '/';
 
           } else {
@@ -158,102 +162,104 @@ const [orderBook, setOrderBook] =
 
     validateLicense();
 
-fetchBrokerData();
+    const fetchBrokerData =
+      async () => {
 
-const brokerTimer =
-  setInterval(() => {
+        try {
+
+          const brokerData =
+            JSON.parse(
+              localStorage.getItem(
+                'brokerConnection'
+              )
+            );
+
+          if (
+            !brokerData ||
+            !brokerData.session
+          ) return;
+
+          setBrokerConnected(true);
+
+          const response =
+            await fetch(
+              `${process.env.REACT_APP_API_URL}/api/broker/data`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type':
+                    'application/json'
+                },
+                body: JSON.stringify({
+                  apiKey:
+                    'QTgnsVLk',
+
+                  jwtToken:
+                    brokerData.session.jwtToken,
+
+                  refreshToken:
+                    brokerData.session.refreshToken,
+
+                  feedToken:
+                    brokerData.session.feedToken
+                })
+              }
+            );
+
+          const data =
+            await response.json();
+
+          if (!data.success) return;
+
+          const rms =
+            data.rms?.data;
+
+          const positions =
+            data.positions?.data || [];
+
+          const orders =
+            data.orders?.data || [];
+
+          setAvailableBalance(
+            rms?.availablecash || 0
+          );
+
+          setRunningTrades(
+            positions.length
+          );
+
+          setOrderBook(
+            orders
+          );
+
+          let totalPL = 0;
+
+          positions.forEach((pos) => {
+
+            totalPL += Number(
+              pos.pnl || 0
+            );
+
+          });
+
+          setRunningPL(totalPL);
+
+        } catch (error) {
+
+          console.log(error);
+
+        }
+
+      };
 
     fetchBrokerData();
 
-  }, 10000);
+    const brokerTimer =
+      setInterval(() => {
 
-const fetchBrokerData =
-  async () => {
+        fetchBrokerData();
 
-    try {
-
-      const brokerData =
-        JSON.parse(
-          localStorage.getItem(
-            'brokerConnection'
-          )
-        );
-
-      if (
-        !brokerData ||
-        !brokerData.session
-      ) return;
-
-      const response =
-        await fetch(
-          `${process.env.REACT_APP_API_URL}/api/broker/data`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-            body: JSON.stringify({
-              apiKey:
-                'QTgnsVLk',
-
-              jwtToken:
-                brokerData.session.jwtToken,
-
-              refreshToken:
-                brokerData.session.refreshToken,
-
-              feedToken:
-                brokerData.session.feedToken
-            })
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) return;
-
-      const rms =
-        data.rms?.data;
-
-      const positions =
-        data.positions?.data || [];
-
-      const orders =
-        data.orders?.data || [];
-
-      setAvailableBalance(
-        rms?.availablecash || 0
-      );
-
-      setRunningTrades(
-        positions.length
-      );
-
-      setOrderBook(
-        orders
-      );
-
-      let totalPL = 0;
-
-      positions.forEach((pos) => {
-
-        totalPL += Number(
-          pos.pnl || 0
-        );
-
-      });
-
-      setRunningPL(totalPL);
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-};
+      }, 10000);
 
     const timer =
       setInterval(() => {
@@ -267,20 +273,44 @@ const fetchBrokerData =
     return () => {
 
       clearInterval(timer);
+      clearInterval(brokerTimer);
 
     };
 
   }, []);
 
-   const logout = () => {
+  const logout = () => {
 
-  localStorage.removeItem('licenseActivated');
-  localStorage.removeItem('licenseKey');
-  localStorage.removeItem('brokerConnection');
+    localStorage.removeItem(
+      'licenseActivated'
+    );
 
-  window.location.href = '/';
+    localStorage.removeItem(
+      'licenseKey'
+    );
 
-};
+    localStorage.removeItem(
+      'brokerConnection'
+    );
+
+    window.location.href = '/';
+
+  };
+
+  const disconnectBroker =
+    () => {
+
+      localStorage.removeItem(
+        'brokerConnection'
+      );
+
+      setBrokerConnected(false);
+
+      alert(
+        'Broker Disconnected'
+      );
+
+    };
 
   const connectBroker =
     async () => {
@@ -408,32 +438,6 @@ const fetchBrokerData =
 
         </div>
 
-        <div className="mt-6 flex gap-4 flex-wrap">
-
-          <div className="bg-zinc-800 px-4 py-2 rounded-full border border-green-500">
-            <span className="text-zinc-400">
-              Time:
-            </span>
-
-            <span className="text-green-400 font-bold ml-2">
-              {currentTime}
-            </span>
-          </div>
-
-          <div className="bg-zinc-800 px-4 py-2 rounded-full border border-blue-500">
-            <span className="text-zinc-400">
-              Mode:
-            </span>
-
-            <span className="text-blue-400 font-bold ml-2">
-              {watchOnly
-                ? 'WATCH ONLY'
-                : 'AUTO EXECUTION'}
-            </span>
-          </div>
-
-        </div>
-
       </header>
 
       <main className="flex-1 p-8 overflow-auto">
@@ -498,142 +502,6 @@ const fetchBrokerData =
 
         <div className="grid grid-cols-2 gap-6 mb-8">
 
-          <div className="bg-zinc-900 border border-purple-600 rounded-3xl p-8">
-
-            <h2 className="text-3xl font-bold mb-6 text-purple-400">
-              Market Selection
-            </h2>
-
-            <div className="flex gap-4 mb-6">
-
-              <button
-                onClick={() => {
-                  setMarketType('Indian');
-                  setSelectedCategory(
-                    'Indices'
-                  );
-                }}
-                className={`flex-1 py-4 rounded-2xl text-xl ${marketType === 'Indian' ? 'bg-purple-600' : 'bg-zinc-800'}`}
-              >
-                Indian Market
-              </button>
-
-              <button
-                onClick={() => {
-                  setMarketType('Forex');
-                  setSelectedCategory(
-                    'Forex'
-                  );
-                }}
-                className={`flex-1 py-4 rounded-2xl text-xl ${marketType === 'Forex' ? 'bg-purple-600' : 'bg-zinc-800'}`}
-              >
-                Forex / Crypto
-              </button>
-
-            </div>
-
-            <select
-              value={selectedCategory}
-              onChange={(e) =>
-                setSelectedCategory(
-                  e.target.value
-                )
-              }
-              className="w-full bg-zinc-800 p-4 rounded-xl outline-none mb-4"
-            >
-
-              {Object.keys(
-                marketData[marketType]
-              ).map((category) => (
-
-                <option
-                  key={category}
-                  value={category}
-                >
-                  {category}
-                </option>
-
-              ))}
-
-            </select>
-
-            <input
-              type="text"
-              placeholder="Search Pair..."
-              value={searchPair}
-              onChange={(e) =>
-                setSearchPair(
-                  e.target.value
-                )
-              }
-              className="w-full bg-zinc-800 p-4 rounded-xl outline-none mb-4"
-            />
-
-            <select
-              value={selectedPair}
-              onChange={(e) =>
-                setSelectedPair(
-                  e.target.value
-                )
-              }
-              className="w-full bg-zinc-800 p-4 rounded-xl outline-none mb-6"
-            >
-
-              <option value="">
-                Auto Market Scan Mode
-              </option>
-
-              {marketData[marketType][selectedCategory]
-                .filter((pair) =>
-                  pair
-                    .toLowerCase()
-                    .includes(
-                      searchPair.toLowerCase()
-                    )
-                )
-                .map((pair) => (
-
-                  <option
-                    key={pair}
-                    value={pair}
-                  >
-                    {pair}
-                  </option>
-
-                ))}
-
-            </select>
-
-            <div className="flex gap-4">
-
-              <button
-                onClick={() =>
-                  setAlgoActive(
-                    !algoActive
-                  )
-                }
-                className={`${algoActive ? 'bg-red-600' : 'bg-green-600'} px-6 py-3 rounded-xl text-lg font-bold`}
-              >
-                {algoActive
-                  ? 'Stop Algo'
-                  : 'Activate Algo'}
-              </button>
-
-              <button
-                onClick={() =>
-                  setWatchOnly(
-                    !watchOnly
-                  )
-                }
-                className={`${watchOnly ? 'bg-blue-600' : 'bg-zinc-700'} px-6 py-3 rounded-xl text-lg font-bold`}
-              >
-                Watch Only
-              </button>
-
-            </div>
-
-          </div>
-
           <div className="bg-zinc-900 border border-green-600 rounded-3xl p-8">
 
             <h2 className="text-3xl font-bold mb-6 text-green-400">
@@ -641,28 +509,6 @@ const fetchBrokerData =
             </h2>
 
             <div className="space-y-4">
-
-              <select
-                value={connectionData.broker}
-                onChange={(e) =>
-                  setConnectionData({
-                    ...connectionData,
-                    broker:
-                      e.target.value
-                  })
-                }
-                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
-              >
-
-                <option value="">
-                  Select Broker
-                </option>
-
-                <option value="AngelOne">
-                  Angel One
-                </option>
-
-              </select>
 
               <input
                 type="text"
@@ -706,14 +552,25 @@ const fetchBrokerData =
                 className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
               />
 
-              <button
-                onClick={connectBroker}
-                className="w-full bg-green-600 hover:bg-green-700 p-4 rounded-xl text-lg font-bold"
-              >
-                {brokerConnected
-                  ? 'Connected Successfully'
-                  : 'Connect Broker'}
-              </button>
+              {
+                brokerConnected
+                  ? (
+                    <button
+                      onClick={disconnectBroker}
+                      className="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl text-lg font-bold"
+                    >
+                      Disconnect Broker
+                    </button>
+                  )
+                  : (
+                    <button
+                      onClick={connectBroker}
+                      className="w-full bg-green-600 hover:bg-green-700 p-4 rounded-xl text-lg font-bold"
+                    >
+                      Connect Broker
+                    </button>
+                  )
+              }
 
             </div>
 
@@ -735,15 +592,15 @@ const fetchBrokerData =
 
           <div className="bg-zinc-900 border border-cyan-500 rounded-2xl p-6">
 
-  <h3 className="text-zinc-400 mb-3">
-    Available Balance
-  </h3>
+            <h3 className="text-zinc-400 mb-3">
+              Available Balance
+            </h3>
 
-  <p className="text-4xl font-bold text-cyan-400">
-    ₹{Number(availableBalance).toLocaleString()}
-  </p>
+            <p className="text-4xl font-bold text-cyan-400">
+              ₹{Number(availableBalance).toLocaleString()}
+            </p>
 
-</div>
+          </div>
 
           <div className="bg-zinc-900 border border-yellow-500 rounded-2xl p-6">
             <h3 className="text-zinc-400 mb-3">
@@ -755,25 +612,13 @@ const fetchBrokerData =
             </p>
           </div>
 
-          <div className="bg-zinc-900 border border-blue-500 rounded-2xl p-6">
-            <h3 className="text-zinc-400 mb-3">
-              Win Rate
-            </h3>
-
-            <p className="text-4xl font-bold text-blue-400">
-              78%
-            </p>
-          </div>
-
           <div className="bg-zinc-900 border border-purple-500 rounded-2xl p-6">
             <h3 className="text-zinc-400 mb-3">
-              Mode
+              Current Time
             </h3>
 
-            <p className="text-3xl font-bold text-purple-400">
-              {watchOnly
-                ? 'WATCH'
-                : 'LIVE'}
+            <p className="text-2xl font-bold text-purple-400">
+              {currentTime}
             </p>
           </div>
 
