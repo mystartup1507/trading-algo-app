@@ -2,22 +2,7 @@ import React from 'react';
 
 const ActiveTrades = () => {
 
-  const trades = [
-    {
-      pair: 'EURUSD',
-      type: 'BUY',
-      entry: '1.0845',
-      pnl: '+$42',
-      status: 'RUNNING'
-    },
-    {
-      pair: 'XAUUSD',
-      type: 'SELL',
-      entry: '2328.15',
-      pnl: '+$86',
-      status: 'RUNNING'
-    }
-  ];
+  const trades = [];
 
   return (
 
@@ -43,84 +28,102 @@ const ActiveTrades = () => {
 
       <div className="space-y-4">
 
-        {trades.map((trade, index) => (
+        {trades.length === 0 ? (
 
-          <div
-            key={index}
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5"
-          >
+          <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-12 text-center">
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+            <h3 className="text-3xl font-bold text-zinc-400 mb-4">
+              No Active Trades
+            </h3>
 
-              <div>
+            <p className="text-zinc-500">
+              AI Engine is scanning markets for high probability opportunities.
+            </p>
 
-                <p className="text-zinc-500 text-sm">
-                  Pair
-                </p>
+          </div>
 
-                <h3 className="text-xl font-bold text-white">
-                  {trade.pair}
-                </h3>
+        ) : (
 
-              </div>
+          trades.map((trade, index) => (
 
-              <div>
+            <div
+              key={index}
+              className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5"
+            >
 
-                <p className="text-zinc-500 text-sm">
-                  Type
-                </p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
 
-                <h3 className={
-                  trade.type === 'BUY'
-                    ? 'text-xl font-bold text-green-400'
-                    : 'text-xl font-bold text-red-400'
-                }>
-                  {trade.type}
-                </h3>
+                <div>
 
-              </div>
+                  <p className="text-zinc-500 text-sm">
+                    Pair
+                  </p>
 
-              <div>
+                  <h3 className="text-xl font-bold text-white">
+                    {trade.pair}
+                  </h3>
 
-                <p className="text-zinc-500 text-sm">
-                  Entry
-                </p>
+                </div>
 
-                <h3 className="text-xl font-bold text-cyan-400">
-                  {trade.entry}
-                </h3>
+                <div>
 
-              </div>
+                  <p className="text-zinc-500 text-sm">
+                    Type
+                  </p>
 
-              <div>
+                  <h3 className={
+                    trade.type === 'BUY'
+                      ? 'text-xl font-bold text-green-400'
+                      : 'text-xl font-bold text-red-400'
+                  }>
+                    {trade.type}
+                  </h3>
 
-                <p className="text-zinc-500 text-sm">
-                  P/L
-                </p>
+                </div>
 
-                <h3 className="text-xl font-bold text-green-400">
-                  {trade.pnl}
-                </h3>
+                <div>
 
-              </div>
+                  <p className="text-zinc-500 text-sm">
+                    Entry
+                  </p>
 
-              <div>
+                  <h3 className="text-xl font-bold text-cyan-400">
+                    {trade.entry}
+                  </h3>
 
-                <p className="text-zinc-500 text-sm">
-                  Status
-                </p>
+                </div>
 
-                <h3 className="text-xl font-bold text-yellow-400">
-                  {trade.status}
-                </h3>
+                <div>
+
+                  <p className="text-zinc-500 text-sm">
+                    P/L
+                  </p>
+
+                  <h3 className="text-xl font-bold text-green-400">
+                    {trade.pnl}
+                  </h3>
+
+                </div>
+
+                <div>
+
+                  <p className="text-zinc-500 text-sm">
+                    Status
+                  </p>
+
+                  <h3 className="text-xl font-bold text-yellow-400">
+                    {trade.status}
+                  </h3>
+
+                </div>
 
               </div>
 
             </div>
 
-          </div>
+          ))
 
-        ))}
+        )}
 
       </div>
 
