@@ -331,11 +331,13 @@ const ClientDashboard = () => {
                 <PlugZap className="text-green-400" />
               </div>
 
-              <p className={`text-2xl font-bold ${brokerConnected ? 'text-green-400' : 'text-red-400'}`}>
-                {brokerConnected
-                  ? 'CONNECTED'
-                  : 'DISCONNECTED'}
-              </p>
+              <p
+  className={
+    brokerConnected
+      ? 'text-2xl font-bold text-green-400'
+      : 'text-2xl font-bold text-red-400'
+  }
+>
 
             </div>
 
