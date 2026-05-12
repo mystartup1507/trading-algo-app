@@ -323,21 +323,31 @@ const ClientDashboard = () => {
 
             <div className="bg-zinc-900/60 border border-green-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-green-500/10">
 
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-zinc-400 text-sm">
-                  Broker
-                </h3>
+  <div className="flex justify-between items-center mb-4">
 
-                <PlugZap className="text-green-400" />
-              </div>
+    <h3 className="text-zinc-400 text-sm">
+      Broker
+    </h3>
 
-              <p
-  className={
-    brokerConnected
-      ? 'text-2xl font-bold text-green-400'
-      : 'text-2xl font-bold text-red-400'
-  }
->
+    <PlugZap className="text-green-400" />
+
+  </div>
+
+  <p
+    className={
+      brokerConnected
+        ? 'text-2xl font-bold text-green-400'
+        : 'text-2xl font-bold text-red-400'
+    }
+  >
+    {
+      brokerConnected
+        ? 'CONNECTED'
+        : 'DISCONNECTED'
+    }
+  </p>
+
+</div>
 
             </div>
 
