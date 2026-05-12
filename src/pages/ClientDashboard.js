@@ -31,12 +31,12 @@ const ClientDashboard = () => {
   const [selectedPair, setSelectedPair] = useState('');
   const [algoRunning, setAlgoRunning] = useState(false);
 
- const [connectionData, setConnectionData] = useState({
-  clientId: '',
-  password: '',
-  totp: '',
-  server: ''
-});
+  const [connectionData, setConnectionData] = useState({
+    clientId: '',
+    password: '',
+    totp: '',
+    server: ''
+  });
 
   useEffect(() => {
 
@@ -82,38 +82,6 @@ const ClientDashboard = () => {
       if (!connectionData.clientId || !connectionData.password) {
         alert('Please fill broker credentials');
         return;
-      }
-
-      if (selectedBroker === 'angel') {
-
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/broker/connect/angel`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              apiKey: 'QTgnsVLk',
-              clientId: connectionData.clientId,
-              password: connectionData.password,
-              totp: connectionData.totp
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        if (!data.success) {
-          alert(data.message || 'Connection Failed');
-          return;
-        }
-
-        localStorage.setItem(
-          'brokerConnection',
-          JSON.stringify(data)
-        );
-
       }
 
       setBrokerConnected(true);
@@ -381,6 +349,19 @@ const ClientDashboard = () => {
               className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
             />
 
+            {selectedMarket === 'forex' && (
+              <input
+                type="text"
+                placeholder="MT4/MT5 Server"
+                value={connectionData.server}
+                onChange={(e) => setConnectionData({
+                  ...connectionData,
+                  server: e.target.value
+                })}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
+              />
+            )}
+
             {selectedMarket === 'indian' && (
               <input
                 type="text"
@@ -392,18 +373,6 @@ const ClientDashboard = () => {
                 })}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
               />
-              {selectedMarket === 'forex' && (
-  <input
-    type="text"
-    placeholder="MT4/MT5 Server"
-    value={connectionData.server || ''}
-    onChange={(e) => setConnectionData({
-      ...connectionData,
-      server: e.target.value
-    })}
-    className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
-  />
-)}
             )}
 
             {brokerConnected ? (
