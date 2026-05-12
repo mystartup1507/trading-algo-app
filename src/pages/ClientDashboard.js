@@ -95,190 +95,139 @@ const ClientDashboard = () => {
       totp: ''
     });
 
-  useEffect(() => {
+ useEffect(() => {
 
-    const validateLicense =
-      async () => {
+  const activated =
+    localStorage.getItem(
+      'licenseActivated'
+    );
 
-        const license =
-          localStorage.getItem(
-            'licenseKey'
+  if (activated !== 'true') {
+
+    window.location.href = '/';
+
+    return;
+
+  }
+
+  setLoading(false);
+
+  const fetchBrokerData =
+    async () => {
+
+      try {
+
+        const brokerData =
+          JSON.parse(
+            localStorage.getItem(
+              'brokerConnection'
+            )
           );
 
-        if (!license) {
+        if (
+          !brokerData ||
+          !brokerData.session
+        ) return;
 
-          window.location.href = '/';
+        setBrokerConnected(true);
 
-          return;
+        const response =
+          await fetch(
+            `${process.env.REACT_APP_API_URL}/api/broker/data`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+              body: JSON.stringify({
+                apiKey:
+                  'QTgnsVLk',
 
-        }
+                jwtToken:
+                  brokerData.session.jwtToken,
 
-        try {
+                refreshToken:
+                  brokerData.session.refreshToken,
 
-          const response =
-            await fetch(
-              `${process.env.REACT_APP_API_URL}/api/license/activate`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type':
-                    'application/json'
-                },
-                body: JSON.stringify({
-                  licenseKey:
-                    license
-                })
-              }
-            );
-
-          const data =
-            await response.json();
-
-          if (!data.success) {
-
-            localStorage.removeItem(
-              'licenseKey'
-            );
-
-            localStorage.removeItem(
-              'licenseActivated'
-            );
-
-            window.location.href = '/';
-
-          } else {
-
-            setLoading(false);
-
-          }
-
-        } catch (error) {
-
-          window.location.href = '/';
-
-        }
-
-      };
-
-    validateLicense();
-
-    const fetchBrokerData =
-      async () => {
-
-        try {
-
-          const brokerData =
-            JSON.parse(
-              localStorage.getItem(
-                'brokerConnection'
-              )
-            );
-
-          if (
-            !brokerData ||
-            !brokerData.session
-          ) return;
-
-          setBrokerConnected(true);
-
-          const response =
-            await fetch(
-              `${process.env.REACT_APP_API_URL}/api/broker/data`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type':
-                    'application/json'
-                },
-                body: JSON.stringify({
-                  apiKey:
-                    'QTgnsVLk',
-
-                  jwtToken:
-                    brokerData.session.jwtToken,
-
-                  refreshToken:
-                    brokerData.session.refreshToken,
-
-                  feedToken:
-                    brokerData.session.feedToken
-                })
-              }
-            );
-
-          const data =
-            await response.json();
-
-          if (!data.success) return;
-
-          const rms =
-            data.rms?.data;
-
-          const positions =
-            data.positions?.data || [];
-
-          const orders =
-            data.orders?.data || [];
-
-          setAvailableBalance(
-            rms?.availablecash || 0
+                feedToken:
+                  brokerData.session.feedToken
+              })
+            }
           );
 
-          setRunningTrades(
-            positions.length
-          );
+        const data =
+          await response.json();
 
-          setOrderBook(
-            orders
-          );
+        if (!data.success) return;
 
-          let totalPL = 0;
+        const rms =
+          data.rms?.data;
 
-          positions.forEach((pos) => {
+        const positions =
+          data.positions?.data || [];
 
-            totalPL += Number(
-              pos.pnl || 0
-            );
+        const orders =
+          data.orders?.data || [];
 
-          });
-
-          setRunningPL(totalPL);
-
-        } catch (error) {
-
-          console.log(error);
-
-        }
-
-      };
-
-    fetchBrokerData();
-
-    const brokerTimer =
-      setInterval(() => {
-
-        fetchBrokerData();
-
-      }, 10000);
-
-    const timer =
-      setInterval(() => {
-
-        setCurrentTime(
-          new Date().toLocaleTimeString()
+        setAvailableBalance(
+          rms?.availablecash || 0
         );
 
-      }, 1000);
+        setRunningTrades(
+          positions.length
+        );
 
-    return () => {
+        setOrderBook(
+          orders
+        );
 
-      clearInterval(timer);
-      clearInterval(brokerTimer);
+        let totalPL = 0;
+
+        positions.forEach((pos) => {
+
+          totalPL += Number(
+            pos.pnl || 0
+          );
+
+        });
+
+        setRunningPL(totalPL);
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
 
     };
 
-  }, []);
+  fetchBrokerData();
 
+  const brokerTimer =
+    setInterval(() => {
+
+      fetchBrokerData();
+
+    }, 10000);
+
+  const timer =
+    setInterval(() => {
+
+      setCurrentTime(
+        new Date().toLocaleTimeString()
+      );
+
+    }, 1000);
+
+  return () => {
+
+    clearInterval(timer);
+    clearInterval(brokerTimer);
+
+  };
+
+}, []);
   const logout = () => {
 
     localStorage.removeItem(
