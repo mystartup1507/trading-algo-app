@@ -9,6 +9,7 @@ import MarketSelector from '../components/MarketSelector';
 import BrokerPanel from '../components/BrokerPanel';
 import StatsCards from '../components/StatsCards';
 import AIEngineStatus from '../components/AIEngineStatus';
+import ActiveTrades from '../components/ActiveTrades';
 
 const ClientDashboard = () => {
 
@@ -195,6 +196,7 @@ const ClientDashboard = () => {
         </div>
 
         <AIEngineStatus />
+        <ActiveTrades />
  
         <StatsCards
           runningPL={runningPL}
