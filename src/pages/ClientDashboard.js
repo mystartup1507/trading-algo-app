@@ -48,9 +48,6 @@ const marketData = {
 
 const ClientDashboard = () => {
 
-  const [loading, setLoading] =
-    useState(true);
-
   const [marketType, setMarketType] =
     useState('Indian');
 
@@ -95,7 +92,7 @@ const ClientDashboard = () => {
       totp: ''
     });
 
- useEffect(() => {
+useEffect(() => {
 
   const activated =
     localStorage.getItem(
@@ -109,8 +106,6 @@ const ClientDashboard = () => {
     return;
 
   }
-
-  setLoading(false);
 
   const fetchBrokerData =
     async () => {
@@ -227,8 +222,7 @@ const ClientDashboard = () => {
 
   };
 
-}, []);
-  const logout = () => {
+}, []);  const logout = () => {
 
     localStorage.removeItem(
       'licenseActivated'
@@ -344,19 +338,6 @@ const ClientDashboard = () => {
 
     };
 
-  if (loading) {
-
-    return (
-
-      <div className="min-h-screen bg-black flex items-center justify-center text-white text-3xl">
-
-        Validating License...
-
-      </div>
-
-    );
-
-  }
 
   return (
 
