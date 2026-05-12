@@ -3,68 +3,7 @@ import React, {
   useState
 } from 'react';
 
-const marketData = {
-  Indian: {
-    Indices: [
-      'NIFTY',
-      'BANKNIFTY',
-      'FINNIFTY',
-      'MIDCPNIFTY',
-      'SENSEX'
-    ],
-
-    Stocks: [
-      'RELIANCE',
-      'TCS',
-      'INFY',
-      'SBIN',
-      'HDFCBANK',
-      'ICICIBANK',
-      'ITC',
-      'LT',
-      'AXISBANK',
-      'BAJFINANCE'
-    ]
-  },
-
-  Forex: {
-    Forex: [
-      'EURUSD',
-      'GBPUSD',
-      'USDJPY',
-      'AUDUSD',
-      'USDCHF'
-    ],
-
-    Crypto: [
-      'BTCUSDT',
-      'ETHUSDT',
-      'SOLUSDT',
-      'XRPUSDT',
-      'DOGEUSDT'
-    ]
-  }
-};
-
 const ClientDashboard = () => {
-
-  const [marketType, setMarketType] =
-    useState('Indian');
-
-  const [selectedCategory, setSelectedCategory] =
-    useState('Indices');
-
-  const [selectedPair, setSelectedPair] =
-    useState('');
-
-  const [searchPair, setSearchPair] =
-    useState('');
-
-  const [algoActive, setAlgoActive] =
-    useState(false);
-
-  const [watchOnly, setWatchOnly] =
-    useState(false);
 
   const [brokerConnected, setBrokerConnected] =
     useState(false);
@@ -81,148 +20,139 @@ const ClientDashboard = () => {
   const [runningTrades, setRunningTrades] =
     useState(0);
 
-  const [orderBook, setOrderBook] =
-    useState([]);
-
   const [connectionData, setConnectionData] =
     useState({
-      broker: '',
       clientId: '',
       password: '',
       totp: ''
     });
 
-useEffect(() => {
+  useEffect(() => {
 
-  const activated =
-    localStorage.getItem(
-      'licenseActivated'
-    );
+    const activated =
+      localStorage.getItem(
+        'licenseActivated'
+      );
 
-  if (activated !== 'true') {
+    if (activated !== 'true') {
 
-    window.location.href = '/';
+      window.location.href = '/';
 
-    return;
+      return;
 
-  }
+    }
 
-  const fetchBrokerData =
-    async () => {
+    const fetchBrokerData =
+      async () => {
 
-      try {
+        try {
 
-        const brokerData =
-          JSON.parse(
-            localStorage.getItem(
-              'brokerConnection'
-            )
+          const brokerData =
+            JSON.parse(
+              localStorage.getItem(
+                'brokerConnection'
+              )
+            );
+
+          if (
+            !brokerData ||
+            !brokerData.session
+          ) return;
+
+          setBrokerConnected(true);
+
+          const response =
+            await fetch(
+              `${process.env.REACT_APP_API_URL}/api/broker/data`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type':
+                    'application/json'
+                },
+                body: JSON.stringify({
+                  apiKey:
+                    'QTgnsVLk',
+
+                  jwtToken:
+                    brokerData.session.jwtToken,
+
+                  refreshToken:
+                    brokerData.session.refreshToken,
+
+                  feedToken:
+                    brokerData.session.feedToken
+                })
+              }
+            );
+
+          const data =
+            await response.json();
+
+          if (!data.success) return;
+
+          const rms =
+            data.rms?.data;
+
+          const positions =
+            data.positions?.data || [];
+
+          let totalPL = 0;
+
+          positions.forEach((pos) => {
+
+            totalPL += Number(
+              pos.pnl || 0
+            );
+
+          });
+
+          setRunningPL(totalPL);
+
+          setAvailableBalance(
+            rms?.availablecash || 0
           );
 
-        if (
-          !brokerData ||
-          !brokerData.session
-        ) return;
-
-        setBrokerConnected(true);
-
-        const response =
-          await fetch(
-            `${process.env.REACT_APP_API_URL}/api/broker/data`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type':
-                  'application/json'
-              },
-              body: JSON.stringify({
-                apiKey:
-                  'QTgnsVLk',
-
-                jwtToken:
-                  brokerData.session.jwtToken,
-
-                refreshToken:
-                  brokerData.session.refreshToken,
-
-                feedToken:
-                  brokerData.session.feedToken
-              })
-            }
+          setRunningTrades(
+            positions.length
           );
 
-        const data =
-          await response.json();
+        } catch (error) {
 
-        if (!data.success) return;
+          console.log(error);
 
-        const rms =
-          data.rms?.data;
+        }
 
-        const positions =
-          data.positions?.data || [];
+      };
 
-        const orders =
-          data.orders?.data || [];
+    fetchBrokerData();
 
-        setAvailableBalance(
-          rms?.availablecash || 0
+    const brokerTimer =
+      setInterval(() => {
+
+        fetchBrokerData();
+
+      }, 10000);
+
+    const timer =
+      setInterval(() => {
+
+        setCurrentTime(
+          new Date().toLocaleTimeString()
         );
 
-        setRunningTrades(
-          positions.length
-        );
+      }, 1000);
 
-        setOrderBook(
-          orders
-        );
+    return () => {
 
-        let totalPL = 0;
-
-        positions.forEach((pos) => {
-
-          totalPL += Number(
-            pos.pnl || 0
-          );
-
-        });
-
-        setRunningPL(totalPL);
-
-      } catch (error) {
-
-        console.log(error);
-
-      }
+      clearInterval(timer);
+      clearInterval(brokerTimer);
 
     };
 
-  fetchBrokerData();
+  }, []);
 
-  const brokerTimer =
-    setInterval(() => {
-
-      fetchBrokerData();
-
-    }, 10000);
-
-  const timer =
-    setInterval(() => {
-
-      setCurrentTime(
-        new Date().toLocaleTimeString()
-      );
-
-    }, 1000);
-
-  return () => {
-
-    clearInterval(timer);
-    clearInterval(brokerTimer);
-
-  };
-
-}, []);  const logout = () => {
+  const logout = () => {
 
     localStorage.removeItem(
       'licenseActivated'
@@ -338,7 +268,6 @@ useEffect(() => {
 
     };
 
-
   return (
 
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -391,10 +320,8 @@ useEffect(() => {
               Algo Engine
             </p>
 
-            <p className={`${algoActive ? 'text-green-400' : 'text-red-400'} font-bold text-lg`}>
-              {algoActive
-                ? 'RUNNING'
-                : 'STOPPED'}
+            <p className="text-red-400 font-bold text-lg">
+              STOPPED
             </p>
           </div>
 
