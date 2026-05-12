@@ -31,11 +31,12 @@ const ClientDashboard = () => {
   const [selectedPair, setSelectedPair] = useState('');
   const [algoRunning, setAlgoRunning] = useState(false);
 
-  const [connectionData, setConnectionData] = useState({
-    clientId: '',
-    password: '',
-    totp: ''
-  });
+ const [connectionData, setConnectionData] = useState({
+  clientId: '',
+  password: '',
+  totp: '',
+  server: ''
+});
 
   useEffect(() => {
 
@@ -391,6 +392,18 @@ const ClientDashboard = () => {
                 })}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
               />
+              {selectedMarket === 'forex' && (
+  <input
+    type="text"
+    placeholder="MT4/MT5 Server"
+    value={connectionData.server || ''}
+    onChange={(e) => setConnectionData({
+      ...connectionData,
+      server: e.target.value
+    })}
+    className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
+  />
+)}
             )}
 
             {brokerConnected ? (
