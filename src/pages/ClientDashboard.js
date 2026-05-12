@@ -10,38 +10,20 @@ const marketData = {
       'BANKNIFTY',
       'FINNIFTY',
       'MIDCPNIFTY',
-      'SENSEX',
-      'BANKEX'
+      'SENSEX'
     ],
+
     Stocks: [
       'RELIANCE',
       'TCS',
       'INFY',
       'SBIN',
-      'ITC',
       'HDFCBANK',
       'ICICIBANK',
+      'ITC',
       'LT',
       'AXISBANK',
-      'BAJFINANCE',
-      'ADANIENT',
-      'WIPRO',
-      'MARUTI',
-      'TITAN',
-      'ASIANPAINT'
-    ],
-    Commodities: [
-      'GOLD',
-      'SILVER',
-      'CRUDEOIL',
-      'NATURALGAS',
-      'COPPER'
-    ],
-    Currency: [
-      'USDINR',
-      'EURINR',
-      'GBPINR',
-      'JPYINR'
+      'BAJFINANCE'
     ]
   },
 
@@ -50,13 +32,8 @@ const marketData = {
       'EURUSD',
       'GBPUSD',
       'USDJPY',
-      'USDCHF',
       'AUDUSD',
-      'NZDUSD',
-      'USDCAD',
-      'EURGBP',
-      'EURJPY',
-      'GBPJPY'
+      'USDCHF'
     ],
 
     Crypto: [
@@ -64,19 +41,7 @@ const marketData = {
       'ETHUSDT',
       'SOLUSDT',
       'XRPUSDT',
-      'DOGEUSDT',
-      'BNBUSDT',
-      'ADAUSDT',
-      'AVAXUSDT',
-      'LTCUSDT'
-    ],
-
-    Indices: [
-      'NAS100',
-      'US30',
-      'SPX500',
-      'GER40',
-      'UK100'
+      'DOGEUSDT'
     ]
   }
 };
@@ -116,12 +81,9 @@ const ClientDashboard = () => {
   const [connectionData, setConnectionData] =
     useState({
       broker: '',
-      apiKey: '',
       clientId: '',
       password: '',
-      totp: '',
-      accessToken: '',
-      server: ''
+      totp: ''
     });
 
   useEffect(() => {
@@ -187,42 +149,26 @@ const ClientDashboard = () => {
 
     validateLicense();
 
-    const savedBroker =
-      localStorage.getItem(
-        'brokerConnection'
-      );
+    const timer =
+      setInterval(() => {
 
-    if (savedBroker) {
+        setCurrentTime(
+          new Date().toLocaleTimeString()
+        );
 
-      setBrokerConnected(true);
-
-      setConnectionData(
-        JSON.parse(savedBroker)
-      );
-
-    }
-
-    const timer = setInterval(() => {
-
-      const now = new Date();
-
-      setCurrentTime(
-        now.toLocaleTimeString()
-      );
-
-    }, 1000);
+      }, 1000);
 
     const pnlTimer =
       setInterval(() => {
 
         setRunningPL((prev) => {
 
-          const randomMove =
+          const move =
             Math.floor(
               Math.random() * 1000
             ) - 500;
 
-          return prev + randomMove;
+          return prev + move;
 
         });
 
@@ -247,26 +193,88 @@ const ClientDashboard = () => {
 
   };
 
-  const connectBroker = () => {
+  const connectBroker =
+    async () => {
 
-    localStorage.setItem(
-      'brokerConnection',
-      JSON.stringify(connectionData)
-    );
+      try {
 
-    setBrokerConnected(true);
+        if (
+          !connectionData.clientId ||
+          !connectionData.password ||
+          !connectionData.totp
+        ) {
 
-    alert(
-      'Broker Connected Successfully'
-    );
+          alert(
+            'Please fill all broker details'
+          );
 
-  };
+          return;
 
-  const toggleAlgo = () => {
+        }
 
-    setAlgoActive(!algoActive);
+        const response =
+          await fetch(
+            `${process.env.REACT_APP_API_URL}/api/broker/connect/angel`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+              body: JSON.stringify({
+                apiKey:
+                  'QTgnsVLk',
 
-  };
+                clientId:
+                  connectionData.clientId,
+
+                password:
+                  connectionData.password,
+
+                totp:
+                  connectionData.totp
+              })
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!data.success) {
+
+          alert(
+            data.message ||
+            'Broker connection failed'
+          );
+
+          return;
+
+        }
+
+        localStorage.setItem(
+          'brokerConnection',
+          JSON.stringify({
+            ...connectionData,
+            session:
+              data.data
+          })
+        );
+
+        setBrokerConnected(true);
+
+        alert(
+          'Angel One Connected Successfully'
+        );
+
+      } catch (error) {
+
+        alert(
+          'Connection Error'
+        );
+
+      }
+
+    };
 
   if (loading) {
 
@@ -297,14 +305,14 @@ const ClientDashboard = () => {
             </h1>
 
             <p className="text-zinc-400 mt-2">
-              Multi-Market AI Trading Terminal
+              AI Automated Trading Terminal
             </p>
 
           </div>
 
           <button
             onClick={logout}
-            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl"
+            className="bg-red-600 px-6 py-3 rounded-xl"
           >
             Logout
           </button>
@@ -325,22 +333,10 @@ const ClientDashboard = () => {
 
           <div className="bg-zinc-800 px-4 py-2 rounded-full border border-blue-500">
             <span className="text-zinc-400">
-              Market:
-            </span>
-
-            <span className="text-blue-400 font-bold ml-2">
-              {marketType === 'Indian'
-                ? 'NSE/BSE LIVE'
-                : 'FOREX LIVE'}
-            </span>
-          </div>
-
-          <div className="bg-zinc-800 px-4 py-2 rounded-full border border-purple-500">
-            <span className="text-zinc-400">
               Mode:
             </span>
 
-            <span className="text-purple-400 font-bold ml-2">
+            <span className="text-blue-400 font-bold ml-2">
               {watchOnly
                 ? 'WATCH ONLY'
                 : 'AUTO EXECUTION'}
@@ -422,14 +418,24 @@ const ClientDashboard = () => {
             <div className="flex gap-4 mb-6">
 
               <button
-                onClick={() => setMarketType('Indian')}
+                onClick={() => {
+                  setMarketType('Indian');
+                  setSelectedCategory(
+                    'Indices'
+                  );
+                }}
                 className={`flex-1 py-4 rounded-2xl text-xl ${marketType === 'Indian' ? 'bg-purple-600' : 'bg-zinc-800'}`}
               >
                 Indian Market
               </button>
 
               <button
-                onClick={() => setMarketType('Forex')}
+                onClick={() => {
+                  setMarketType('Forex');
+                  setSelectedCategory(
+                    'Forex'
+                  );
+                }}
                 className={`flex-1 py-4 rounded-2xl text-xl ${marketType === 'Forex' ? 'bg-purple-600' : 'bg-zinc-800'}`}
               >
                 Forex / Crypto
@@ -439,12 +445,11 @@ const ClientDashboard = () => {
 
             <select
               value={selectedCategory}
-              onChange={(e) => {
+              onChange={(e) =>
                 setSelectedCategory(
                   e.target.value
-                );
-                setSelectedPair('');
-              }}
+                )
+              }
               className="w-full bg-zinc-800 p-4 rounded-xl outline-none mb-4"
             >
 
@@ -513,7 +518,11 @@ const ClientDashboard = () => {
             <div className="flex gap-4">
 
               <button
-                onClick={toggleAlgo}
+                onClick={() =>
+                  setAlgoActive(
+                    !algoActive
+                  )
+                }
                 className={`${algoActive ? 'bg-red-600' : 'bg-green-600'} px-6 py-3 rounded-xl text-lg font-bold`}
               >
                 {algoActive
@@ -560,29 +569,53 @@ const ClientDashboard = () => {
                   Select Broker
                 </option>
 
-                {marketType === 'Indian' ? (
-                  <>
-                    <option value="AngelOne">
-                      Angel One
-                    </option>
-
-                    <option value="Dhan">
-                      Dhan
-                    </option>
-                  </>
-                ) : (
-                  <>
-                    <option value="MT4">
-                      MT4
-                    </option>
-
-                    <option value="MT5">
-                      MT5
-                    </option>
-                  </>
-                )}
+                <option value="AngelOne">
+                  Angel One
+                </option>
 
               </select>
+
+              <input
+                type="text"
+                placeholder="Angel Client ID"
+                value={connectionData.clientId}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    clientId:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
+              />
+
+              <input
+                type="password"
+                placeholder="4 Digit PIN"
+                value={connectionData.password}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    password:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Current TOTP"
+                value={connectionData.totp}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    totp:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 p-4 rounded-xl outline-none"
+              />
 
               <button
                 onClick={connectBroker}
@@ -641,228 +674,6 @@ const ClientDashboard = () => {
                 ? 'WATCH'
                 : 'LIVE'}
             </p>
-          </div>
-
-        </div>
-
-        <div className="grid grid-cols-3 gap-6 mb-8">
-
-          <div className="bg-zinc-900 border border-green-600 rounded-3xl p-6">
-
-            <h2 className="text-2xl font-bold text-green-400 mb-4">
-              Algo Engine
-            </h2>
-
-            <div className="space-y-3 text-lg">
-
-              <div className="flex justify-between">
-                <span className="text-zinc-400">
-                  Status
-                </span>
-
-                <span className={`${algoActive ? 'text-green-400' : 'text-red-400'} font-bold`}>
-                  {algoActive
-                    ? 'RUNNING'
-                    : 'STOPPED'}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-zinc-400">
-                  Mode
-                </span>
-
-                <span className="text-blue-400 font-bold">
-                  {watchOnly
-                    ? 'WATCH ONLY'
-                    : 'AUTO EXECUTION'}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-zinc-400">
-                  Broker
-                </span>
-
-                <span className="text-purple-400 font-bold">
-                  {connectionData.broker || 'Not Connected'}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-zinc-400">
-                  Selected Pair
-                </span>
-
-                <span className="text-yellow-400 font-bold">
-                  {selectedPair || 'AUTO SCAN'}
-                </span>
-              </div>
-
-            </div>
-
-          </div>
-
-          <div className="bg-zinc-900 border border-yellow-600 rounded-3xl p-6 col-span-2">
-
-            <div className="flex justify-between items-center mb-6">
-
-              <h2 className="text-2xl font-bold text-yellow-400">
-                Active Trade Monitor
-              </h2>
-
-              <div className="bg-green-600 px-4 py-2 rounded-full text-sm">
-                LIVE MONITORING
-              </div>
-
-            </div>
-
-            <table className="w-full">
-
-              <thead>
-
-                <tr className="border-b border-zinc-700 text-zinc-400">
-
-                  <th className="text-left p-4">
-                    Pair
-                  </th>
-
-                  <th className="text-left p-4">
-                    Type
-                  </th>
-
-                  <th className="text-left p-4">
-                    Entry
-                  </th>
-
-                  <th className="text-left p-4">
-                    SL
-                  </th>
-
-                  <th className="text-left p-4">
-                    TP
-                  </th>
-
-                  <th className="text-left p-4">
-                    Status
-                  </th>
-
-                  <th className="text-left p-4">
-                    P/L
-                  </th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                <tr className="border-b border-zinc-800">
-
-                  <td className="p-4 text-purple-400 font-bold">
-                    {selectedPair || 'NIFTY'}
-                  </td>
-
-                  <td className="p-4 text-green-400 font-bold">
-                    BUY
-                  </td>
-
-                  <td className="p-4">
-                    24500
-                  </td>
-
-                  <td className="p-4 text-red-400">
-                    24380
-                  </td>
-
-                  <td className="p-4 text-green-400">
-                    24820
-                  </td>
-
-                  <td className="p-4">
-                    <span className="bg-green-600 px-4 py-2 rounded-full text-sm">
-                      RUNNING
-                    </span>
-                  </td>
-
-                  <td className="p-4 text-green-400 font-bold">
-                    +₹3,200
-                  </td>
-
-                </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
-        <div className="bg-zinc-900 border border-blue-600 rounded-3xl p-8 mt-8">
-
-          <div className="flex justify-between items-center mb-6">
-
-            <h2 className="text-3xl font-bold text-blue-400">
-              Live Algo Activity
-            </h2>
-
-            <div className="bg-blue-600 px-4 py-2 rounded-full text-sm">
-              REAL-TIME ENGINE
-            </div>
-
-          </div>
-
-          <div className="space-y-4">
-
-            <div className="flex justify-between items-center bg-zinc-800 p-4 rounded-2xl">
-
-              <div>
-                <p className="font-bold text-green-400">
-                  NIFTY BUY Executed
-                </p>
-
-                <p className="text-zinc-400 text-sm mt-1">
-                  Algo entered long position automatically
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-white font-bold">
-                  09:15 AM
-                </p>
-
-                <p className="text-green-400 text-sm">
-                  SUCCESS
-                </p>
-              </div>
-
-            </div>
-
-            <div className="flex justify-between items-center bg-zinc-800 p-4 rounded-2xl">
-
-              <div>
-                <p className="font-bold text-yellow-400">
-                  BTCUSDT Monitoring
-                </p>
-
-                <p className="text-zinc-400 text-sm mt-1">
-                  Watch-only mode enabled
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-white font-bold">
-                  09:20 AM
-                </p>
-
-                <p className="text-yellow-400 text-sm">
-                  MONITORING
-                </p>
-              </div>
-
-            </div>
-
           </div>
 
         </div>
