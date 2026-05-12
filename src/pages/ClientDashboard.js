@@ -102,7 +102,7 @@ const [orderBook, setOrderBook] =
 
         const license =
           localStorage.getItem(
-            'clientLicense'
+            'licenseKey'
           );
 
         if (!license) {
@@ -272,15 +272,15 @@ const fetchBrokerData =
 
   }, []);
 
-  const logout = () => {
+   const logout = () => {
 
-    localStorage.removeItem(
-      'clientLicense'
-    );
+  localStorage.removeItem('licenseActivated');
+  localStorage.removeItem('licenseKey');
+  localStorage.removeItem('brokerConnection');
 
-    window.location.href = '/';
+  window.location.href = '/';
 
-  };
+};
 
   const connectBroker =
     async () => {
