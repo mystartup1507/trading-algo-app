@@ -108,7 +108,7 @@ const ClientDashboard = () => {
 
           const response =
             await fetch(
-              `${process.env.REACT_APP_API_URL}/api/license/validate`,
+              `${process.env.REACT_APP_API_URL}/api/license/activate`,
               {
                 method: 'POST',
                 headers: {
@@ -128,7 +128,7 @@ const ClientDashboard = () => {
           if (!data.success) {
 
             localStorage.removeItem(
-              'clientLicense'
+              'licenseKey'
             );
 
             window.location.href = '/';
