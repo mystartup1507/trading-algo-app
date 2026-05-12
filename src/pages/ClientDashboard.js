@@ -75,8 +75,17 @@ const ClientDashboard = () => {
   const [currentTime, setCurrentTime] =
     useState('');
 
-  const [runningPL, setRunningPL] =
-    useState(12540);
+const [runningPL, setRunningPL] =
+  useState(0);
+
+const [availableBalance, setAvailableBalance] =
+  useState(0);
+
+const [runningTrades, setRunningTrades] =
+  useState(0);
+
+const [orderBook, setOrderBook] =
+  useState([]);
 
   const [connectionData, setConnectionData] =
     useState({
@@ -149,6 +158,103 @@ const ClientDashboard = () => {
 
     validateLicense();
 
+fetchBrokerData();
+
+const brokerTimer =
+  setInterval(() => {
+
+    fetchBrokerData();
+
+  }, 10000);
+
+const fetchBrokerData =
+  async () => {
+
+    try {
+
+      const brokerData =
+        JSON.parse(
+          localStorage.getItem(
+            'brokerConnection'
+          )
+        );
+
+      if (
+        !brokerData ||
+        !brokerData.session
+      ) return;
+
+      const response =
+        await fetch(
+          `${process.env.REACT_APP_API_URL}/api/broker/data`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+            body: JSON.stringify({
+              apiKey:
+                'QTgnsVLk',
+
+              jwtToken:
+                brokerData.session.jwtToken,
+
+              refreshToken:
+                brokerData.session.refreshToken,
+
+              feedToken:
+                brokerData.session.feedToken
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!data.success) return;
+
+      const rms =
+        data.rms?.data;
+
+      const positions =
+        data.positions?.data || [];
+
+      const orders =
+        data.orders?.data || [];
+
+      setAvailableBalance(
+        rms?.availablecash || 0
+      );
+
+      setRunningTrades(
+        positions.length
+      );
+
+      setOrderBook(
+        orders
+      );
+
+      let totalPL = 0;
+
+      positions.forEach((pos) => {
+
+        totalPL += Number(
+          pos.pnl || 0
+        );
+
+      });
+
+      setRunningPL(totalPL);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+};
+
     const timer =
       setInterval(() => {
 
@@ -158,26 +264,9 @@ const ClientDashboard = () => {
 
       }, 1000);
 
-    const pnlTimer =
-      setInterval(() => {
-
-        setRunningPL((prev) => {
-
-          const move =
-            Math.floor(
-              Math.random() * 1000
-            ) - 500;
-
-          return prev + move;
-
-        });
-
-      }, 4000);
-
     return () => {
 
       clearInterval(timer);
-      clearInterval(pnlTimer);
 
     };
 
@@ -644,13 +733,25 @@ const ClientDashboard = () => {
             </p>
           </div>
 
+          <div className="bg-zinc-900 border border-cyan-500 rounded-2xl p-6">
+
+  <h3 className="text-zinc-400 mb-3">
+    Available Balance
+  </h3>
+
+  <p className="text-4xl font-bold text-cyan-400">
+    ₹{Number(availableBalance).toLocaleString()}
+  </p>
+
+</div>
+
           <div className="bg-zinc-900 border border-yellow-500 rounded-2xl p-6">
             <h3 className="text-zinc-400 mb-3">
               Running Trades
             </h3>
 
             <p className="text-4xl font-bold text-yellow-400">
-              3
+              {runningTrades}
             </p>
           </div>
 
