@@ -300,15 +300,45 @@ const ClientDashboard = () => {
             </div>
 
             <p className={
-              brokerConnected
-                ? 'text-2xl font-bold text-green-400'
-                : 'text-2xl font-bold text-red-400'
-            }>
-              {
-                brokerConnected
-                  ? 'CONNECTED'
-                  : 'DISCONNECTED'
-              }
+{
+  brokerConnected ? (
+    <button
+      onClick={disconnectBroker}
+      className="w-full bg-red-600 hover:bg-red-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+    >
+      <Unplug size={18} />
+      Disconnect Broker
+    </button>
+  ) : (
+    <button
+      onClick={connectBroker}
+      className="w-full bg-green-600 hover:bg-green-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+    >
+      <PlugZap size={18} />
+      Connect Broker
+    </button>
+  )
+}
+
+{
+  algoRunning ? (
+    <button
+      onClick={toggleAlgo}
+      className="w-full bg-red-600 hover:bg-red-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+    >
+      <Square size={18} />
+      Stop Algo
+    </button>
+  ) : (
+    <button
+      onClick={toggleAlgo}
+      className="w-full bg-cyan-600 hover:bg-cyan-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+    >
+      <Play size={18} />
+      Start Algo
+    </button>
+  )
+}
             </p>
 
           </div>
