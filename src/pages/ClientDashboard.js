@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useState
-} from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   Activity,
@@ -84,15 +81,11 @@ const ClientDashboard = () => {
                     'application/json'
                 },
                 body: JSON.stringify({
-                  apiKey:
-                    'QTgnsVLk',
-
+                  apiKey: 'QTgnsVLk',
                   jwtToken:
                     brokerData.session.jwtToken,
-
                   refreshToken:
                     brokerData.session.refreshToken,
-
                   feedToken:
                     brokerData.session.feedToken
                 })
@@ -227,15 +220,11 @@ const ClientDashboard = () => {
                   'application/json'
               },
               body: JSON.stringify({
-                apiKey:
-                  'QTgnsVLk',
-
+                apiKey: 'QTgnsVLk',
                 clientId:
                   connectionData.clientId,
-
                 password:
                   connectionData.password,
-
                 totp:
                   connectionData.totp
               })
@@ -260,8 +249,7 @@ const ClientDashboard = () => {
           'brokerConnection',
           JSON.stringify({
             ...connectionData,
-            session:
-              data.data
+            session: data.data
           })
         );
 
@@ -283,179 +271,364 @@ const ClientDashboard = () => {
 
   return (
 
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-black text-white">
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#7c3aed22,transparent_25%),radial-gradient(circle_at_bottom_right,#06b6d422,transparent_25%)]"></div>
+      <header className="border-b border-purple-500/30 bg-zinc-950/80 backdrop-blur-xl px-8 py-6">
 
-      <div className="relative z-10">
+        <div className="flex justify-between items-center">
 
-        <header className="border-b border-purple-500/30 backdrop-blur-xl bg-zinc-950/70 px-8 py-6 sticky top-0 z-50">
+          <div>
 
-          <div className="flex items-center justify-between">
+            <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 text-transparent bg-clip-text">
+              JD-Algo
+            </h1>
 
-            <div>
+            <p className="text-zinc-400 mt-2">
+              AI Powered Trading Infrastructure
+            </p>
 
-              <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 text-transparent bg-clip-text">
-                JD-Algo
-              </h1>
+          </div>
 
-              <p className="text-zinc-400 mt-2 text-lg">
-                AI Powered Trading Infrastructure
-              </p>
+          <button
+            onClick={logout}
+            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl flex items-center gap-2"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+
+        </div>
+
+      </header>
+
+      <main className="p-8 space-y-8">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+          <div className="bg-zinc-900 border border-green-500/40 rounded-3xl p-6">
+
+            <div className="flex justify-between items-center mb-4">
+
+              <h3 className="text-zinc-400 text-sm">
+                Broker
+              </h3>
+
+              <PlugZap className="text-green-400" />
 
             </div>
 
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl transition-all duration-300 shadow-lg shadow-red-600/30"
+            <p
+              className={
+                brokerConnected
+                  ? 'text-2xl font-bold text-green-400'
+                  : 'text-2xl font-bold text-red-400'
+              }
             >
-              <LogOut size={20} />
-              Logout
-            </button>
+              {
+                brokerConnected
+                  ? 'CONNECTED'
+                  : 'DISCONNECTED'
+              }
+            </p>
 
           </div>
 
-        </header>
+          <div className="bg-zinc-900 border border-purple-500/40 rounded-3xl p-6">
 
-        <main className="p-8 space-y-8">
+            <div className="flex justify-between items-center mb-4">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <h3 className="text-zinc-400 text-sm">
+                Algo Engine
+              </h3>
 
-            <div className="bg-zinc-900/60 border border-green-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-green-500/10">
-
-  <div className="flex justify-between items-center mb-4">
-
-    <h3 className="text-zinc-400 text-sm">
-      Broker
-    </h3>
-
-    <PlugZap className="text-green-400" />
-
-  </div>
-
-  <p
-    className={
-      brokerConnected
-        ? 'text-2xl font-bold text-green-400'
-        : 'text-2xl font-bold text-red-400'
-    }
-  >
-    {
-      brokerConnected
-        ? 'CONNECTED'
-        : 'DISCONNECTED'
-    }
-  </p>
-
-</div>
+              <Activity className="text-purple-400" />
 
             </div>
 
-            <div className="bg-zinc-900/60 border border-purple-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-purple-500/10">
+            <p className="text-2xl font-bold text-red-400">
+              STOPPED
+            </p>
 
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-zinc-400 text-sm">
-                  Algo Engine
-                </h3>
+          </div>
 
-                <Activity className="text-purple-400" />
-              </div>
+          <div className="bg-zinc-900 border border-yellow-500/40 rounded-3xl p-6">
 
-              <p className="text-2xl font-bold text-red-400">
-                STOPPED
-              </p>
+            <div className="flex justify-between items-center mb-4">
 
-            </div>
+              <h3 className="text-zinc-400 text-sm">
+                Market Feed
+              </h3>
 
-            <div className="bg-zinc-900/60 border border-yellow-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-yellow-500/10">
-
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-zinc-400 text-sm">
-                  Market Feed
-                </h3>
-
-                <Wifi className="text-yellow-400" />
-              </div>
-
-              <p className="text-2xl font-bold text-yellow-400">
-                LIVE
-              </p>
+              <Wifi className="text-yellow-400" />
 
             </div>
 
-            <div className="bg-zinc-900/60 border border-blue-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-blue-500/10">
+            <p className="text-2xl font-bold text-yellow-400">
+              LIVE
+            </p>
 
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-zinc-400 text-sm">
-                  License
-                </h3>
+          </div>
 
-                <ShieldCheck className="text-blue-400" />
-              </div>
+          <div className="bg-zinc-900 border border-blue-500/40 rounded-3xl p-6">
 
-              <p className="text-2xl font-bold text-blue-400">
-                ACTIVE
-              </p>
+            <div className="flex justify-between items-center mb-4">
+
+              <h3 className="text-zinc-400 text-sm">
+                License
+              </h3>
+
+              <ShieldCheck className="text-blue-400" />
 
             </div>
 
-            <div className="bg-zinc-900/60 border border-red-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-lg shadow-red-500/10">
+            <p className="text-2xl font-bold text-blue-400">
+              ACTIVE
+            </p>
 
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-zinc-400 text-sm">
-                  Server
-                </h3>
+          </div>
 
-                <Server className="text-red-400" />
-              </div>
+          <div className="bg-zinc-900 border border-red-500/40 rounded-3xl p-6">
 
-              <p className="text-2xl font-bold text-red-400">
-                HEALTHY
-              </p>
+            <div className="flex justify-between items-center mb-4">
+
+              <h3 className="text-zinc-400 text-sm">
+                Server
+              </h3>
+
+              <Server className="text-red-400" />
+
+            </div>
+
+            <p className="text-2xl font-bold text-red-400">
+              HEALTHY
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          <div className="bg-zinc-900 border border-green-500/30 rounded-3xl p-8">
+
+            <h2 className="text-3xl font-bold text-green-400 mb-8">
+              Broker Connection
+            </h2>
+
+            <div className="space-y-5">
+
+              <input
+                type="text"
+                placeholder="Angel Client ID"
+                value={connectionData.clientId}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    clientId:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
+              />
+
+              <input
+                type="password"
+                placeholder="4 Digit PIN"
+                value={connectionData.password}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    password:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Current TOTP"
+                value={connectionData.totp}
+                onChange={(e) =>
+                  setConnectionData({
+                    ...connectionData,
+                    totp:
+                      e.target.value
+                  })
+                }
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-4 outline-none"
+              />
+
+              {
+                brokerConnected
+                  ? (
+                    <button
+                      onClick={disconnectBroker}
+                      className="w-full bg-red-600 hover:bg-red-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+                    >
+                      <Unplug size={20} />
+                      Disconnect Broker
+                    </button>
+                  )
+                  : (
+                    <button
+                      onClick={connectBroker}
+                      className="w-full bg-green-600 hover:bg-green-700 rounded-2xl p-4 font-bold flex items-center justify-center gap-2"
+                    >
+                      <PlugZap size={20} />
+                      Connect Broker
+                    </button>
+                  )
+              }
 
             </div>
 
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-zinc-900 border border-cyan-500/30 rounded-3xl p-8">
 
-            <div className="bg-zinc-900/60 border border-green-500/30 backdrop-blur-2xl rounded-[32px] p-8 shadow-2xl shadow-green-500/10">
+            <h2 className="text-3xl font-bold text-cyan-400 mb-8">
+              System Overview
+            </h2>
 
-              <h2 className="text-4xl font-bold text-green-400 mb-8">
-                Broker Connection
-              </h2>
+            <div className="space-y-5">
 
-              <div className="space-y-5">
+              <div className="flex justify-between border-b border-zinc-800 pb-3">
 
-                <input
-                  type="text"
-                  placeholder="Angel Client ID"
-                  value={connectionData.clientId}
-                  onChange={(e) =>
-                    setConnectionData({
-                      ...connectionData,
-                      clientId:
-                        e.target.value
-                    })
-                  }
-                  className="w-full bg-zinc-800/70 border border-zinc-700 focus:border-green-400 rounded-2xl p-5 outline-none text-lg"
-                />
+                <span className="text-zinc-400">
+                  Trading Mode
+                </span>
 
-                <input
-                  type="password"
-                  placeholder="4 Digit PIN"
-                  value={connectionData.password}
-                  onChange={(e) =>
-                    setConnectionData({
-                      ...connectionData,
-                      password:
-                        e.target.value
-                    })
-                  }
-                  className="w-full bg-zinc-800/70 border border-zinc-700 focus:border-green-400 rounded-2xl p-5 outline-none text-lg"
-                />
+                <span className="text-purple-400 font-semibold">
+                  Semi Automated
+                </span>
 
-                <input
-                  type="text"
-                  placeholder="Current TOTP"
-                  value={connectionData.totp}
+              </div>
+
+              <div className="flex justify-between border-b border-zinc-800 pb-3">
+
+                <span className="text-zinc-400">
+                  Exchange
+                </span>
+
+                <span className="text-green-400 font-semibold">
+                  NSE / BSE
+                </span>
+
+              </div>
+
+              <div className="flex justify-between border-b border-zinc-800 pb-3">
+
+                <span className="text-zinc-400">
+                  Websocket
+                </span>
+
+                <span className="text-yellow-400 font-semibold">
+                  Active
+                </span>
+
+              </div>
+
+              <div className="flex justify-between border-b border-zinc-800 pb-3">
+
+                <span className="text-zinc-400">
+                  AI Engine
+                </span>
+
+                <span className="text-cyan-400 font-semibold">
+                  Standby
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+          <div className="bg-zinc-900 border border-green-500/40 rounded-3xl p-8">
+
+            <div className="flex justify-between items-center mb-5">
+
+              <h3 className="text-zinc-400">
+                Today P/L
+              </h3>
+
+              <TrendingUp className="text-green-400" />
+
+            </div>
+
+            <p className="text-5xl font-black text-green-400">
+              ₹{runningPL.toLocaleString()}
+            </p>
+
+          </div>
+
+          <div className="bg-zinc-900 border border-cyan-500/40 rounded-3xl p-8">
+
+            <div className="flex justify-between items-center mb-5">
+
+              <h3 className="text-zinc-400">
+                Available Balance
+              </h3>
+
+              <Wallet className="text-cyan-400" />
+
+            </div>
+
+            <p className="text-5xl font-black text-cyan-400">
+              ₹{Number(availableBalance).toLocaleString()}
+            </p>
+
+          </div>
+
+          <div className="bg-zinc-900 border border-yellow-500/40 rounded-3xl p-8">
+
+            <div className="flex justify-between items-center mb-5">
+
+              <h3 className="text-zinc-400">
+                Running Trades
+              </h3>
+
+              <Activity className="text-yellow-400" />
+
+            </div>
+
+            <p className="text-5xl font-black text-yellow-400">
+              {runningTrades}
+            </p>
+
+          </div>
+
+          <div className="bg-zinc-900 border border-purple-500/40 rounded-3xl p-8">
+
+            <div className="flex justify-between items-center mb-5">
+
+              <h3 className="text-zinc-400">
+                Current Time
+              </h3>
+
+              <Clock3 className="text-purple-400" />
+
+            </div>
+
+            <p className="text-4xl font-black text-purple-400">
+              {currentTime}
+            </p>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+  );
+
+};
+
+export default ClientDashboard;
