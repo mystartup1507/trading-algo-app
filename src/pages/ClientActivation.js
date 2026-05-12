@@ -29,17 +29,14 @@ const ClientActivation = () => {
       const data =
         await response.json();
 
-      if (data.success) {
+    if (data.success) {
 
-        localStorage.setItem(
-          'clientLicense',
-          licenseKey
-        );
+  localStorage.setItem('licenseActivated', 'true');
+  localStorage.setItem('licenseKey', licenseKey);
 
-        window.location.href =
-          '/dashboard';
+  window.location.href = '/dashboard';
 
-      } else {
+} else {
 
         setMessage(
           data.message

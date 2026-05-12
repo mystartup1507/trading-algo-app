@@ -1,7 +1,8 @@
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
+  Navigate
 } from 'react-router-dom';
 
 import ClientActivation
@@ -12,6 +13,9 @@ from './pages/ClientDashboard';
 
 function App() {
 
+  const isActivated =
+    localStorage.getItem('licenseActivated') === 'true';
+
   return (
 
     <BrowserRouter>
@@ -21,14 +25,18 @@ function App() {
         <Route
           path="/"
           element={
-            <ClientActivation />
+            isActivated
+              ? <Navigate to="/dashboard" />
+              : <ClientActivation />
           }
         />
 
         <Route
           path="/dashboard"
           element={
-            <ClientDashboard />
+            isActivated
+              ? <ClientDashboard />
+              : <Navigate to="/" />
           }
         />
 
