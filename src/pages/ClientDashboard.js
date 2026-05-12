@@ -8,6 +8,7 @@ import StatusCards from '../components/StatusCards';
 import MarketSelector from '../components/MarketSelector';
 import BrokerPanel from '../components/BrokerPanel';
 import StatsCards from '../components/StatsCards';
+import AlgoControls from '../components/AlgoControls';
 
 const ClientDashboard = () => {
 
@@ -48,6 +49,17 @@ const ClientDashboard = () => {
       totp: '',
       server: ''
     });
+
+  const [algoSettings, setAlgoSettings] =
+  useState({
+    riskPercent: 1,
+    lotSize: 0.01,
+    stopLoss: 30,
+    takeProfit: 60,
+    maxTrades: 2,
+    tradeDirection: 'both',
+    confidenceMode: 'balanced'
+  });
 
   useEffect(() => {
 
@@ -191,6 +203,11 @@ const ClientDashboard = () => {
           />
 
         </div>
+
+         <AlgoControls
+  algoSettings={algoSettings}
+  setAlgoSettings={setAlgoSettings}
+/>
 
         <StatsCards
           runningPL={runningPL}
