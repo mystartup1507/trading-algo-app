@@ -182,6 +182,10 @@ const profileResponse =
 
 })
 
+}
+);
+
+
 const profileData =
   await profileResponse.json();
 
