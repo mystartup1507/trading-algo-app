@@ -118,17 +118,24 @@ const [availableBalance, setAvailableBalance] =
             'Content-Type':
               'application/json'
           },
-          body: JSON.stringify({
-            broker: selectedBroker,
-            clientId:
-              connectionData.clientId,
-            password:
-              connectionData.password,
-            totp:
-              connectionData.totp
-          })
-        }
-      );
+        body: JSON.stringify({
+
+  apiKey:
+    process.env.REACT_APP_ANGEL_API_KEY,
+
+  broker:
+    selectedBroker,
+
+  clientId:
+    connectionData.clientId,
+
+  password:
+    connectionData.password,
+
+  totp:
+    connectionData.totp
+
+})
 
     const data =
       await response.json();
