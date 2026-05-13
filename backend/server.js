@@ -414,15 +414,27 @@ app.put(
 );
 
 app.post(
-  '/api/broker/order/angel',
+  '/api/broker/order',
   async (req, res) => {
 
     try {
 
+      const {
+        clientId,
+        password,
+        totp,
+        orderData
+      } = req.body;
+
       const result =
-        await placeOrder(
-          req.body
-        );
+        await placeOrder({
+          apiKey:
+            process.env.ANGEL_API_KEY,
+          clientId,
+          password,
+          totp,
+          orderData
+        });
 
       if (!result.success) {
 
@@ -434,7 +446,7 @@ app.post(
 
       }
 
-      res.json({
+      return res.json({
         success: true,
         data:
           result.data
@@ -442,7 +454,7 @@ app.post(
 
     } catch (error) {
 
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message:
           error.message
@@ -452,7 +464,6 @@ app.post(
 
   }
 );
-
 app.post(
   '/api/broker/connect',
   async (req, res) => {

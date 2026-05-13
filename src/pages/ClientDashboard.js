@@ -207,80 +207,110 @@ if (
 
   };
 
-  const toggleAlgo = () => {
+  const toggleAlgo = async () => {
 
-    if (
-      tradingMode === 'manual' &&
-      !selectedPair
-    ) {
+  try {
+
+    if (!brokerConnected) {
 
       alert(
-        'Please enter pair/symbol'
+        'Connect Broker First'
       );
 
       return;
 
     }
 
-    setAlgoRunning(!algoRunning);
+    if (algoRunning) {
 
-  };
+      setAlgoRunning(false);
 
-  return (
+      alert(
+        'Algo Stopped'
+      );
 
-    <div className="min-h-screen bg-black text-white">
+      return;
 
-      <Header />
+    }
 
-      <main className="p-8 space-y-8">
+    const orderPayload = {
 
-        <StatusCards
-          brokerConnected={brokerConnected}
-          algoRunning={algoRunning}
-        />
+      variety: 'NORMAL',
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      tradingsymbol: 'SBIN-EQ',
 
-          <MarketSelector
-            selectedMarket={selectedMarket}
-            setSelectedMarket={setSelectedMarket}
-            selectedBroker={selectedBroker}
-            setSelectedBroker={setSelectedBroker}
-            tradingMode={tradingMode}
-            setTradingMode={setTradingMode}
-            selectedPair={selectedPair}
-            setSelectedPair={setSelectedPair}
-          />
+      symboltoken: '3045',
 
-          <BrokerPanel
-            selectedMarket={selectedMarket}
-            connectionData={connectionData}
-            setConnectionData={setConnectionData}
-            brokerConnected={brokerConnected}
-            connectBroker={connectBroker}
-            disconnectBroker={disconnectBroker}
-            algoRunning={algoRunning}
-            toggleAlgo={toggleAlgo}
-          />
+      transactiontype: 'BUY',
 
-        </div>
+      exchange: 'NSE',
 
-        <AIEngineStatus />
-        <ActiveTrades />
- 
-        <StatsCards
-          runningPL={runningPL}
-          availableBalance={availableBalance}
-          runningTrades={runningTrades}
-          currentTime={currentTime}
-        />
+      ordertype: 'MARKET',
 
-      </main>
+      producttype: 'INTRADAY',
 
-    </div>
+      duration: 'DAY',
 
-  );
+      price: '0',
+
+      squareoff: '0',
+
+      stoploss: '0',
+
+      quantity: '1'
+
+    };
+
+    const response =
+      await fetch(
+        `${process.env.REACT_APP_API_URL}/api/broker/order`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+          body: JSON.stringify({
+
+            clientId:
+              connectionData.clientId,
+
+            password:
+              connectionData.password,
+
+            totp:
+              connectionData.totp,
+
+            orderData:
+              orderPayload
+
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(data.message);
+      return;
+
+    }
+
+    setAlgoRunning(true);
+
+    alert(
+      'Real Trade Executed Successfully'
+    );
+
+  } catch (error) {
+
+    alert(
+      'Order Execution Failed'
+    );
+
+  }
 
 };
-
 export default ClientDashboard;
