@@ -313,4 +313,62 @@ if (
   }
 
 };
+
+  return (
+
+    <div className="min-h-screen bg-black text-white">
+
+      <Header />
+
+      <main className="p-8 space-y-8">
+
+        <StatusCards
+          brokerConnected={brokerConnected}
+          algoRunning={algoRunning}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          <MarketSelector
+            selectedMarket={selectedMarket}
+            setSelectedMarket={setSelectedMarket}
+            selectedBroker={selectedBroker}
+            setSelectedBroker={setSelectedBroker}
+            tradingMode={tradingMode}
+            setTradingMode={setTradingMode}
+            selectedPair={selectedPair}
+            setSelectedPair={setSelectedPair}
+          />
+
+          <BrokerPanel
+            selectedMarket={selectedMarket}
+            connectionData={connectionData}
+            setConnectionData={setConnectionData}
+            brokerConnected={brokerConnected}
+            connectBroker={connectBroker}
+            disconnectBroker={disconnectBroker}
+            algoRunning={algoRunning}
+            toggleAlgo={toggleAlgo}
+          />
+
+        </div>
+
+        <AIEngineStatus />
+
+        <ActiveTrades />
+
+        <StatsCards
+          runningPL={runningPL}
+          availableBalance={availableBalance}
+          runningTrades={runningTrades}
+          currentTime={currentTime}
+        />
+
+      </main>
+
+    </div>
+
+  );
+
+};
 export default ClientDashboard;
