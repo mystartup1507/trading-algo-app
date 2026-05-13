@@ -19,7 +19,8 @@ const {
 
 const {
   connectAngelBroker,
-  placeOrder
+  placeOrder,
+  getProfileData
 } = require('./services/angelService');
 
 const app =
@@ -499,6 +500,58 @@ app.post(
         message:
           'Broker Connected',
         data: result.data
+      });
+
+    } catch (error) {
+
+      return res.status(500).json({
+        success: false,
+        message:
+          error.message
+      });
+
+    }
+
+  }
+);
+
+app.post(
+  '/api/broker/profile',
+  async (req, res) => {
+
+    try {
+
+      const {
+        clientId,
+        password,
+        totp
+      } = req.body;
+
+      const result =
+        await getProfileData({
+          apiKey:
+            process.env.ANGEL_API_KEY,
+          clientId,
+          password,
+          totp
+        });
+
+      if (!result.success) {
+
+        return res.status(400).json({
+          success: false,
+          message:
+            result.message
+        });
+
+      }
+
+      return res.json({
+        success: true,
+        profile:
+          result.profile,
+        rms:
+          result.rms
       });
 
     } catch (error) {

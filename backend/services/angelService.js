@@ -86,7 +86,55 @@ const placeOrder =
 
 };
 
+const getProfileData =
+  async ({
+    apiKey,
+    clientId,
+    password,
+    totp
+  }) => {
+
+    try {
+
+      const smartApi =
+        new SmartApi({
+          api_key: apiKey
+        });
+
+      await smartApi.generateSession(
+        clientId,
+        password,
+        totp
+      );
+
+      const profile =
+        await smartApi.getProfile(
+          clientId
+        );
+
+      const rms =
+        await smartApi.getRMS();
+
+      return {
+        success: true,
+        profile,
+        rms
+      };
+
+    } catch (error) {
+
+      return {
+        success: false,
+        message:
+          error.message
+      };
+
+    }
+
+};
+
 module.exports = {
   connectAngelBroker,
-  placeOrder
+  placeOrder,
+  getProfileData
 };

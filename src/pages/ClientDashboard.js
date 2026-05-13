@@ -22,8 +22,8 @@ const ClientDashboard = () => {
   const [runningPL] =
     useState(0);
 
-  const [availableBalance] =
-    useState(0);
+const [availableBalance, setAvailableBalance] =
+  useState(0);
 
   const [runningTrades] =
     useState(0);
@@ -146,6 +146,39 @@ const ClientDashboard = () => {
     );
 
     setBrokerConnected(true);
+
+const profileResponse =
+  await fetch(
+    `${process.env.REACT_APP_API_URL}/api/broker/profile`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/json'
+      },
+      body: JSON.stringify({
+        clientId:
+          connectionData.clientId,
+        password:
+          connectionData.password,
+        totp:
+          connectionData.totp
+      })
+    }
+  );
+
+const profileData =
+  await profileResponse.json();
+
+if (
+  profileData.success
+) {
+
+  setAvailableBalance(
+    profileData.rms.data.availablecash || 0
+  );
+
+}
 
     alert(
       'Broker Connected Successfully'
