@@ -3,16 +3,13 @@ import { LogOut } from 'lucide-react';
 
 const Header = () => {
 
-  const logout = () => {
+const logout = () => {
 
-    localStorage.removeItem('licenseActivated');
-    localStorage.removeItem('licenseKey');
-    localStorage.removeItem('brokerConnection');
+  localStorage.clear();
 
-    window.location.href = '/';
+  window.location.href = '/';
 
-  };
-
+};
   return (
 
     <header className="border-b border-purple-500/30 bg-zinc-950/80 px-8 py-6">

@@ -31,8 +31,17 @@ const ClientActivation = () => {
 
     if (data.success) {
 
-  localStorage.setItem('licenseActivated', 'true');
-  localStorage.setItem('licenseKey', licenseKey);
+localStorage.clear();
+
+localStorage.setItem(
+  'licenseActivated',
+  'true'
+);
+
+localStorage.setItem(
+  'licenseKey',
+  licenseKey.trim()
+);
 
   window.location.href = '/dashboard';
 

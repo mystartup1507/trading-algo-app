@@ -243,7 +243,7 @@ app.post(
         .select('*')
         .eq(
           'license_key',
-          licenseKey
+          licenseKey.trim()
         )
         .single();
 
@@ -261,7 +261,7 @@ app.post(
       }
 
       if (
-        !data.is_active
+        data.is_active === false
       ) {
 
         return res.status(403).json({
@@ -272,23 +272,29 @@ app.post(
 
       }
 
-      const currentDate =
-        new Date();
-
-      const expiryDate =
-        new Date(
-          data.expires_at
-        );
-
       if (
-        expiryDate < currentDate
+        data.expires_at
       ) {
 
-        return res.status(403).json({
-          success: false,
-          message:
-            'License Expired'
-        });
+        const currentDate =
+          new Date();
+
+        const expiryDate =
+          new Date(
+            data.expires_at
+          );
+
+        if (
+          expiryDate < currentDate
+        ) {
+
+          return res.status(403).json({
+            success: false,
+            message:
+              'License Expired'
+          });
+
+        }
 
       }
 
