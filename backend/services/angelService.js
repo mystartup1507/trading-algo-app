@@ -14,9 +14,42 @@ const connectAngelBroker =
     try {
 
       const smartApi =
-        new SmartApi({
-          api_key: apiKey
-        });
+  new SmartApi({
+    api_key: apiKey,
+
+    default_timeout: 5000
+  });
+
+smartApi.setSessionExpiryHook(
+  () => {
+    console.log(
+      'Session Expired'
+    );
+  }
+);
+
+smartApi.requestHeaders = {
+  'X-ClientLocalIP':
+    '127.0.0.1',
+
+  'X-ClientPublicIP':
+    '127.0.0.1',
+
+  'X-MACAddress':
+    '02:4b:66:09:cc:89',
+
+  'Accept':
+    'application/json',
+
+  'X-PrivateKey':
+    apiKey,
+
+  'X-UserType':
+    'USER',
+
+  'X-SourceID':
+    'WEB'
+};
 
       const session =
         await smartApi.generateSession(
