@@ -134,24 +134,63 @@ const getProfileData =
           api_key: apiKey
         });
 
-      await smartApi.generateSession(
-        clientId,
-        password,
-        totp
-      );
+      smartApi.requestHeaders = {
 
-      const profile =
-        await smartApi.getProfile(
-          clientId
+        'X-ClientLocalIP':
+          '127.0.0.1',
+
+        'X-ClientPublicIP':
+          '127.0.0.1',
+
+        'X-MACAddress':
+          '02:4b:66:09:cc:89',
+
+        'Accept':
+          'application/json',
+
+        'X-PrivateKey':
+          apiKey,
+
+        'X-UserType':
+          'USER',
+
+        'X-SourceID':
+          'WEB'
+      };
+
+      const session =
+        await smartApi.generateSession(
+          clientId,
+          password,
+          totp
         );
 
-      const rms =
-        await smartApi.getRMS();
+      if (!session.status) {
+
+        return {
+          success: false,
+          message:
+            'Session Failed'
+        };
+
+      }
 
       return {
         success: true,
-        profile,
-        rms
+
+        profile: {
+          data: {
+            name:
+              clientId
+          }
+        },
+
+        rms: {
+          data: {
+            availablecash:
+              session.data?.availablecash || 0
+          }
+        }
       };
 
     } catch (error) {
@@ -165,7 +204,6 @@ const getProfileData =
     }
 
 };
-
 module.exports = {
   connectAngelBroker,
   placeOrder,

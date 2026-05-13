@@ -9,7 +9,6 @@ import MarketSelector from '../components/MarketSelector';
 import BrokerPanel from '../components/BrokerPanel';
 import StatsCards from '../components/StatsCards';
 import AIEngineStatus from '../components/AIEngineStatus';
-import ActiveTrades from '../components/ActiveTrades';
 
 const ClientDashboard = () => {
 
@@ -22,11 +21,14 @@ const ClientDashboard = () => {
   const [runningPL] =
     useState(0);
 
-const [availableBalance, setAvailableBalance] =
-  useState(0);
-
-  const [runningTrades] =
+  const [availableBalance, setAvailableBalance] =
     useState(0);
+
+  const [runningTrades, setRunningTrades] =
+    useState(0);
+
+  const [positions, setPositions] =
+    useState([]);
 
   const [selectedMarket, setSelectedMarket] =
     useState('indian');
@@ -50,7 +52,6 @@ const [availableBalance, setAvailableBalance] =
       totp: '',
       server: ''
     });
-
 
   useEffect(() => {
 
@@ -92,129 +93,175 @@ const [availableBalance, setAvailableBalance] =
 
   }, [selectedMarket]);
 
- const connectBroker = async () => {
+  const connectBroker = async () => {
 
-  try {
+    try {
 
-    if (
-      !connectionData.clientId ||
-      !connectionData.password
-    ) {
+      if (
+        !connectionData.clientId ||
+        !connectionData.password
+      ) {
 
-      alert(
-        'Please fill broker credentials'
+        alert(
+          'Please fill broker credentials'
+        );
+
+        return;
+
+      }
+
+      const response =
+        await fetch(
+          'https://jdalgoapi.duckdns.org/api/broker/connect/angel',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+
+              apiKey:
+                'QTgnsVLk',
+
+              broker:
+                selectedBroker,
+
+              clientId:
+                connectionData.clientId,
+
+              password:
+                connectionData.password,
+
+              totp:
+                connectionData.totp
+
+            })
+
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!data.success) {
+
+        alert(data.message);
+        return;
+
+      }
+
+      localStorage.setItem(
+        'brokerConnection',
+        'true'
       );
 
-      return;
+      setBrokerConnected(true);
+
+      const profileResponse =
+        await fetch(
+          'https://jdalgoapi.duckdns.org/api/broker/profile',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+
+              apiKey:
+                'QTgnsVLk',
+
+              clientId:
+                connectionData.clientId,
+
+              password:
+                connectionData.password,
+
+              totp:
+                connectionData.totp
+
+            })
+
+          }
+        );
+
+      const profileData =
+        await profileResponse.json();
+
+      if (profileData.success) {
+
+        setAvailableBalance(
+          profileData.rms?.data?.availablecash || 0
+        );
+
+      }
+
+      const positionsResponse =
+        await fetch(
+          'https://jdalgoapi.duckdns.org/api/broker/positions',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+
+              apiKey:
+                'QTgnsVLk',
+
+              clientId:
+                connectionData.clientId,
+
+              password:
+                connectionData.password,
+
+              totp:
+                connectionData.totp
+
+            })
+
+          }
+        );
+
+      const positionsData =
+        await positionsResponse.json();
+
+      if (positionsData.success) {
+
+        setPositions(
+          positionsData.data?.data || []
+        );
+
+        setRunningTrades(
+          positionsData.data?.data?.length || 0
+        );
+
+      }
+
+      alert(
+        'Broker Connected Successfully'
+      );
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert(
+        'Connection Error'
+      );
 
     }
 
-    const response =
-  await fetch(
-    'https://jdalgoapi.duckdns.org/api/broker/connect/angel',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/json'
-      },
+  };
 
-      body: JSON.stringify({
-
-        apiKey:
-          'QTgnsVLk',
-
-        broker:
-          selectedBroker,
-
-        clientId:
-          connectionData.clientId,
-
-        password:
-          connectionData.password,
-
-        totp:
-          connectionData.totp
-
-      })
-
-    }
-  );
-    const data =
-      await response.json();
-
-    if (!data.success) {
-
-      alert(data.message);
-      return;
-
-    }
-
-    localStorage.setItem(
-      'brokerConnection',
-      'true'
-    );
-
-    setBrokerConnected(true);
-
-const profileResponse =
-  await fetch(
-    `${process.env.REACT_APP_API_URL}/api/broker/profile`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/json'
-      },
-     body: JSON.stringify({
-
-  apiKey:
-    process.env.REACT_APP_ANGEL_API_KEY,
-
-  broker:
-    selectedBroker,
-
-  clientId:
-    connectionData.clientId,
-
-  password:
-    connectionData.password,
-
-  totp:
-    connectionData.totp
-
-})
-
-}
-);
-
-
-const profileData =
-  await profileResponse.json();
-
-if (
-  profileData.success
-) {
-
-  setAvailableBalance(
-    profileData.rms.data.availablecash || 0
-  );
-
-}
-
-    alert(
-      'Broker Connected Successfully'
-    );
-
-  } catch (error) {
-
-    alert(
-      error.message
-    );
-
-  }
-
-};
   const disconnectBroker = () => {
 
     localStorage.removeItem(
@@ -222,6 +269,8 @@ if (
     );
 
     setBrokerConnected(false);
+
+    setPositions([]);
 
     alert(
       'Broker Disconnected'
@@ -231,111 +280,116 @@ if (
 
   const toggleAlgo = async () => {
 
-  try {
+    try {
 
-    if (!brokerConnected) {
+      if (!brokerConnected) {
+
+        alert(
+          'Connect Broker First'
+        );
+
+        return;
+
+      }
+
+      if (algoRunning) {
+
+        setAlgoRunning(false);
+
+        alert(
+          'Algo Stopped'
+        );
+
+        return;
+
+      }
+
+      const orderPayload = {
+
+        variety: 'NORMAL',
+
+        tradingsymbol: 'SBIN-EQ',
+
+        symboltoken: '3045',
+
+        transactiontype: 'BUY',
+
+        exchange: 'NSE',
+
+        ordertype: 'MARKET',
+
+        producttype: 'INTRADAY',
+
+        duration: 'DAY',
+
+        price: '0',
+
+        squareoff: '0',
+
+        stoploss: '0',
+
+        quantity: '1'
+
+      };
+
+      const response =
+        await fetch(
+          'https://jdalgoapi.duckdns.org/api/broker/order',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+
+              apiKey:
+                'QTgnsVLk',
+
+              clientId:
+                connectionData.clientId,
+
+              password:
+                connectionData.password,
+
+              totp:
+                connectionData.totp,
+
+              orderData:
+                orderPayload
+
+            })
+
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!data.success) {
+
+        alert(data.message);
+        return;
+
+      }
+
+      setAlgoRunning(true);
 
       alert(
-        'Connect Broker First'
+        'Real Trade Executed Successfully'
       );
 
-      return;
-
-    }
-
-    if (algoRunning) {
-
-      setAlgoRunning(false);
+    } catch (error) {
 
       alert(
-        'Algo Stopped'
+        'Order Execution Failed'
       );
-
-      return;
 
     }
 
-    const orderPayload = {
-
-      variety: 'NORMAL',
-
-      tradingsymbol: 'SBIN-EQ',
-
-      symboltoken: '3045',
-
-      transactiontype: 'BUY',
-
-      exchange: 'NSE',
-
-      ordertype: 'MARKET',
-
-      producttype: 'INTRADAY',
-
-      duration: 'DAY',
-
-      price: '0',
-
-      squareoff: '0',
-
-      stoploss: '0',
-
-      quantity: '1'
-
-    };
-
-    const response =
-      await fetch(
-        `${process.env.REACT_APP_API_URL}/api/broker/order`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          body: JSON.stringify({
-
-            clientId:
-              connectionData.clientId,
-
-            password:
-              connectionData.password,
-
-            totp:
-              connectionData.totp,
-
-            orderData:
-              orderPayload
-
-          })
-        }
-      );
-
-    const data =
-      await response.json();
-      console.log(data);
-
-    if (!data.success) {
-
-      alert(data.message);
-      return;
-
-    }
-
-    setAlgoRunning(true);
-
-    alert(
-      'Real Trade Executed Successfully'
-    );
-
-  } catch (error) {
-
-    alert(
-      'Order Execution Failed'
-    );
-
-  }
-
-};
+  };
 
   return (
 
@@ -378,7 +432,68 @@ if (
 
         <AIEngineStatus />
 
-        <ActiveTrades />
+        <div className="bg-zinc-950 border border-cyan-500/20 rounded-2xl p-6">
+
+          <h2 className="text-2xl font-bold mb-6 text-cyan-400">
+            Live Positions
+          </h2>
+
+          {
+            positions.length === 0 ? (
+
+              <div className="text-zinc-400">
+                No Active Positions
+              </div>
+
+            ) : (
+
+              positions.map((trade, index) => (
+
+                <div
+                  key={index}
+                  className="bg-zinc-900 p-4 rounded-xl mb-3"
+                >
+
+                  <div className="flex justify-between">
+
+                    <span>
+                      {trade.tradingsymbol}
+                    </span>
+
+                    <span>
+                      Qty:
+                      {' '}
+                      {trade.netqty}
+                    </span>
+
+                  </div>
+
+                  <div className="flex justify-between mt-2">
+
+                    <span>
+                      Avg:
+                      {' '}
+                      ₹
+                      {trade.averageprice}
+                    </span>
+
+                    <span>
+                      P/L:
+                      {' '}
+                      ₹
+                      {trade.pnl}
+                    </span>
+
+                  </div>
+
+                </div>
+
+              ))
+
+            )
+          }
+
+        </div>
 
         <StatsCards
           runningPL={runningPL}
@@ -394,4 +509,5 @@ if (
   );
 
 };
+
 export default ClientDashboard;
