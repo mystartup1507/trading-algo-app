@@ -110,35 +110,36 @@ const [availableBalance, setAvailableBalance] =
     }
 
     const response =
-      await fetch(
-        `${process.env.REACT_APP_API_URL}/api/broker/connect/angel`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-        body: JSON.stringify({
+  await fetch(
+    'https://jdalgoapi.duckdns.org/api/broker/connect/angel',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/json'
+      },
 
- apiKey:
-  'QTgnsVLk',
+      body: JSON.stringify({
 
-  broker:
-    selectedBroker,
+        apiKey:
+          'QTgnsVLk',
 
-  clientId:
-    connectionData.clientId,
+        broker:
+          selectedBroker,
 
-  password:
-    connectionData.password,
+        clientId:
+          connectionData.clientId,
 
-  totp:
-    connectionData.totp
+        password:
+          connectionData.password,
 
-})
-}
-);
+        totp:
+          connectionData.totp
 
+      })
+
+    }
+  );
     const data =
       await response.json();
 
