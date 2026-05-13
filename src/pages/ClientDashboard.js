@@ -111,7 +111,7 @@ const [availableBalance, setAvailableBalance] =
 
     const response =
       await fetch(
-        `${process.env.REACT_APP_API_URL}/api/broker/connect`,
+        `${process.env.REACT_APP_API_URL}/api/broker/connect/angel`,
         {
           method: 'POST',
           headers: {
@@ -187,7 +187,7 @@ if (
   } catch (error) {
 
     alert(
-      'Broker Connection Failed'
+      error.message
     );
 
   }
@@ -290,6 +290,7 @@ if (
 
     const data =
       await response.json();
+      console.log(data);
 
     if (!data.success) {
 
