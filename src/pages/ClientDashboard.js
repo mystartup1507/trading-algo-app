@@ -136,6 +136,8 @@ const [availableBalance, setAvailableBalance] =
     connectionData.totp
 
 })
+}
+);
 
     const data =
       await response.json();
