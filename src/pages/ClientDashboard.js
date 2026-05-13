@@ -92,37 +92,74 @@ const ClientDashboard = () => {
 
   }, [selectedMarket]);
 
-  const connectBroker = async () => {
+ const connectBroker = async () => {
 
-    try {
+  try {
 
-      if (
-        !connectionData.clientId ||
-        !connectionData.password
-      ) {
-
-        alert(
-          'Please fill broker credentials'
-        );
-
-        return;
-
-      }
-
-      setBrokerConnected(true);
+    if (
+      !connectionData.clientId ||
+      !connectionData.password
+    ) {
 
       alert(
-        'Broker Connected Successfully'
+        'Please fill broker credentials'
       );
 
-    } catch (error) {
-
-      alert('Connection Error');
+      return;
 
     }
 
-  };
+    const response =
+      await fetch(
+        `${process.env.REACT_APP_API_URL}/api/broker/connect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+          body: JSON.stringify({
+            broker: selectedBroker,
+            clientId:
+              connectionData.clientId,
+            password:
+              connectionData.password,
+            totp:
+              connectionData.totp
+          })
+        }
+      );
 
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(data.message);
+      return;
+
+    }
+
+    localStorage.setItem(
+      'brokerConnection',
+      'true'
+    );
+
+    setBrokerConnected(true);
+
+    alert(
+      'Broker Connected Successfully'
+    );
+
+  } catch (error) {
+
+    alert(
+      'Broker Connection Failed'
+    );
+
+  }
+
+};
   const disconnectBroker = () => {
 
     localStorage.removeItem(

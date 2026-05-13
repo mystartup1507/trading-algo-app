@@ -452,6 +452,68 @@ app.post(
   }
 );
 
+app.post(
+  '/api/broker/connect',
+  async (req, res) => {
+
+    try {
+
+      const {
+        broker,
+        clientId,
+        password,
+        totp
+      } = req.body;
+
+      if (
+        broker !== 'angel'
+      ) {
+
+        return res.status(400).json({
+          success: false,
+          message: 'Only Angel supported currently'
+        });
+
+      }
+
+      const result =
+        await connectAngelBroker({
+          apiKey:
+            process.env.ANGEL_API_KEY,
+          clientId,
+          password,
+          totp
+        });
+
+      if (!result.success) {
+
+        return res.status(400).json({
+          success: false,
+          message: result.message
+        });
+
+      }
+
+      return res.json({
+        success: true,
+        message:
+          'Broker Connected',
+        data: result.data
+      });
+
+    } catch (error) {
+
+      return res.status(500).json({
+        success: false,
+        message:
+          error.message
+      });
+
+    }
+
+  }
+);
+
 app.listen(
   PORT,
   () => {
