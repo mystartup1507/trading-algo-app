@@ -13,7 +13,7 @@ const ClientActivation = () => {
     try {
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/license/activate`,
+        `${process.env.REACT_APP_API_URL}/api/license/validate`,
         {
           method: 'POST',
           headers: {
