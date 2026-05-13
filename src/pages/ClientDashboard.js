@@ -163,16 +163,24 @@ const profileResponse =
         'Content-Type':
           'application/json'
       },
-      body: JSON.stringify({
-        clientId:
-          connectionData.clientId,
-        password:
-          connectionData.password,
-        totp:
-          connectionData.totp
-      })
-    }
-  );
+     body: JSON.stringify({
+
+  apiKey:
+    process.env.REACT_APP_ANGEL_API_KEY,
+
+  broker:
+    selectedBroker,
+
+  clientId:
+    connectionData.clientId,
+
+  password:
+    connectionData.password,
+
+  totp:
+    connectionData.totp
+
+})
 
 const profileData =
   await profileResponse.json();
