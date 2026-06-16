@@ -195,56 +195,14 @@ const ClientDashboard = () => {
 
       if (profileData.success) {
 
-        setAvailableBalance(
+      AvailableBalance(
           profileData.rms?.data?.availablecash || 0
         );
 
       }
 
-      const positionsResponse =
-        await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/positions',
-          {
-            method: 'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-
-            body: JSON.stringify({
-
-              apiKey:
-                'QTgnsVLk',
-
-              clientId:
-                connectionData.clientId,
-
-              password:
-                connectionData.password,
-
-              totp:
-                connectionData.totp
-
-            })
-
-          }
-        );
-
-      const positionsData =
-        await positionsResponse.json();
-
-      if (positionsData.success) {
-
-        setPositions(
-          positionsData.data?.data || []
-        );
-
-        setRunningTrades(
-          positionsData.data?.data?.length || 0
-        );
-
-      }
+      setPositions([]);
+setRunningTrades(0);
 
       alert(
         'Broker Connected Successfully'
