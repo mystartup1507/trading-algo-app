@@ -112,7 +112,7 @@ const ClientDashboard = () => {
 
       const response =
         await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/connect/angel',
+          'https://jdalgoapi.duckdns.org/api/broker/connect',
           {
             method: 'POST',
 
