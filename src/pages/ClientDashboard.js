@@ -112,7 +112,7 @@ const ClientDashboard = () => {
 
       const response =
         await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/connect/angel',
+          'http://65.1.41.122:5000/api/broker/connect/angel',
           {
             method: 'POST',
 
@@ -162,7 +162,7 @@ const ClientDashboard = () => {
 
       const profileResponse =
         await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/profile',
+          'http://65.1.41.122:5000/api/broker/profile',
           {
             method: 'POST',
 
@@ -203,7 +203,7 @@ const ClientDashboard = () => {
 
       const positionsResponse =
         await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/positions',
+          'http://65.1.41.122:5000/api/broker/positions',
           {
             method: 'POST',
 
@@ -334,7 +334,7 @@ const ClientDashboard = () => {
 
       const response =
         await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/order',
+          'http://65.1.41.122:5000/api/broker/order',
           {
             method: 'POST',
 
