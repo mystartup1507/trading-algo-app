@@ -301,7 +301,7 @@ const data =
       setAlgoRunning(true);
 
       alert(
-        'Real Trade Executed Successfully'
+        'AI Engine Started'
       );
 
     } catch (error) {
