@@ -262,69 +262,34 @@ setRunningTrades(0);
 
       }
 
-      const orderPayload = {
+const response =
+  await fetch(
+    'https://jdalgoapi.duckdns.org/api/algo/start',
+    {
+      method: 'POST',
 
-        variety: 'NORMAL',
+      headers: {
+        'Content-Type': 'application/json'
+      },
 
-        tradingsymbol: 'SBIN-EQ',
+      body: JSON.stringify({
 
-        symboltoken: '3045',
+        clientId:
+          connectionData.clientId,
 
-        transactiontype: 'BUY',
+        password:
+          connectionData.password,
 
-        exchange: 'NSE',
+        totp:
+          connectionData.totp
 
-        ordertype: 'MARKET',
+      })
 
-        producttype: 'INTRADAY',
+    }
+  );
 
-        duration: 'DAY',
-
-        price: '0',
-
-        squareoff: '0',
-
-        stoploss: '0',
-
-        quantity: '1'
-
-      };
-
-      const response =
-        await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/order',
-          {
-            method: 'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-
-            body: JSON.stringify({
-
-              apiKey:
-                'QTgnsVLk',
-
-              clientId:
-                connectionData.clientId,
-
-              password:
-                connectionData.password,
-
-              totp:
-                connectionData.totp,
-
-              orderData:
-                orderPayload
-
-            })
-
-          }
-        );
-
-      const data =
-        await response.json();
+const data =
+  await response.json();
 
       if (!data.success) {
 
