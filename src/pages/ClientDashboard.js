@@ -195,7 +195,7 @@ const ClientDashboard = () => {
 
       if (profileData.success) {
 
-      AvailableBalance(
+      setAvailableBalance(
           profileData.rms?.data?.availablecash || 0
         );
 
