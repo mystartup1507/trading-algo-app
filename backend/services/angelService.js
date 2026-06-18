@@ -51,18 +51,21 @@ smartApi.requestHeaders = {
     'WEB'
 };
 
-      const session =
-        await smartApi.generateSession(
-          clientId,
-          password,
-          totp
-        );
+const session =
+  await smartApi.generateSession(
+    clientId,
+    password,
+    totp
+  );
 
-      return {
-        success: true,
-        data: session
-      };
+console.log(
+  JSON.stringify(session, null, 2)
+);
 
+return {
+  success: true,
+  data: session
+};
     } catch (error) {
 
       return {
@@ -204,8 +207,97 @@ const getProfileData =
     }
 
 };
+
+const getPositions = async ({
+  apiKey,
+  clientId,
+  password,
+  totp
+}) => {
+  try {
+
+    const smartApi = new SmartApi({
+      api_key: apiKey
+    });
+
+    smartApi.requestHeaders = {
+      'X-ClientLocalIP': '127.0.0.1',
+      'X-ClientPublicIP': '127.0.0.1',
+      'X-MACAddress': '02:4b:66:09:cc:89',
+      'Accept': 'application/json',
+      'X-PrivateKey': apiKey,
+      'X-UserType': 'USER',
+      'X-SourceID': 'WEB'
+    };
+
+    await smartApi.generateSession(
+      clientId,
+      password,
+      totp
+    );
+
+    const positions = await smartApi.position();
+
+    return {
+      success: true,
+      data: positions
+    };
+
+  } catch (error) {
+
+    return {
+      success: false,
+      message: error.message
+    };
+
+  }
+};
+
+const getCandleData = async ({
+  apiKey,
+  clientId,
+  password,
+  totp,
+  params
+}) => {
+
+  try {
+
+    const smartApi = new SmartApi({
+      api_key: apiKey
+    });
+
+    await smartApi.generateSession(
+      clientId,
+      password,
+      totp
+    );
+
+    const candles =
+      await smartApi.getCandleData(
+        params
+      );
+
+    return {
+      success: true,
+      data: candles
+    };
+
+  } catch (error) {
+
+    return {
+      success: false,
+      message: error.message
+    };
+
+  }
+
+};
+
 module.exports = {
   connectAngelBroker,
   placeOrder,
-  getProfileData
+  getProfileData,
+  getPositions,
+  getCandleData
 };

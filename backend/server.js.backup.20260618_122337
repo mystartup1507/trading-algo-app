@@ -582,6 +582,21 @@ app.post(
   }
 );
 
+app.post('/api/broker/positions', async (req, res) => {
+  try {
+    return res.json({
+      success: true,
+      data: {
+        data: []
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 
 app.post('/api/broker/positions', async (req, res) => {
   try {

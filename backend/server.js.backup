@@ -20,12 +20,8 @@ const {
 const {
   connectAngelBroker,
   placeOrder,
-  getProfileData,
-  getPositions,
-  getCandleData
+  getProfileData
 } = require('./services/angelService');
-
-const tradingEngine = require('./engine/tradingEngine');
 
 const app =
   express();
@@ -575,132 +571,6 @@ app.post(
         success: false,
         message:
           error.message
-      });
-
-    }
-
-  }
-);
-
-
-app.post('/api/broker/positions', async (req, res) => {
-  try {
-
-    const {
-      clientId,
-      password,
-      totp
-    } = req.body;
-
-    const result = await getPositions({
-      apiKey: process.env.ANGEL_API_KEY,
-      clientId,
-      password,
-      totp
-    });
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: result.message
-      });
-    }
-
-    return res.json({
-      success: true,
-      data: result.data
-    });
-
-  } catch (error) {
-
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
-
-  }
-});
-
-app.post('/api/algo/start', async (req, res) => {
-
-  try {
-
-    const {
-      clientId,
-      password,
-      totp
-    } = req.body;
-
-    await tradingEngine.start(
-      {
-        clientId,
-        password,
-        totp
-      },
-      {
-        dailyTrades: 0,
-        dailyLoss: 0
-      }
-    );
-
-    return res.json({
-      success: true,
-      message: 'AI Engine Started'
-    });
-
-  } catch (error) {
-
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
-
-  }
-
-});
-
-app.post(
-  '/api/broker/candles',
-  async (req, res) => {
-
-    try {
-
-      const {
-        clientId,
-        password,
-        totp,
-        params
-      } = req.body;
-
-      const result =
-        await getCandleData({
-
-          apiKey:
-            process.env.ANGEL_API_KEY,
-
-          clientId,
-          password,
-          totp,
-          params
-
-        });
-
-      if (!result.success) {
-
-        return res.status(400).json({
-          success: false,
-          message: result.message
-        });
-
-      }
-
-      return res.json(result);
-
-    } catch (error) {
-
-      return res.status(500).json({
-        success: false,
-        message: error.message
       });
 
     }

@@ -1,0 +1,39 @@
+const axios = require("axios");
+
+class OrderManager {
+
+  async executeAngelOrder(credentials, orderData) {
+
+    try {
+
+      const response = await axios.post(
+        "https://jdalgoapi.duckdns.org/api/broker/order",
+        {
+          clientId: credentials.clientId,
+          password: credentials.password,
+          totp: credentials.totp,
+          orderData
+        }
+      );
+
+      return {
+        success: true,
+        data: response.data
+      };
+
+    } catch (error) {
+
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message
+      };
+
+    }
+
+  }
+
+}
+
+module.exports = new OrderManager();

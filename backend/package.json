@@ -23,6 +23,7 @@
     "mongoose": "^9.6.2",
     "otplib": "^13.4.0",
     "smartapi-javascript": "^1.0.27",
+    "technicalindicators": "^3.1.0",
     "uuid": "^14.0.0",
     "ws": "^8.20.0"
   },
