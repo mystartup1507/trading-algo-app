@@ -629,30 +629,75 @@ app.post('/api/algo/start', async (req, res) => {
 
   try {
 
+    if (algoRunning) {
+
+      return res.json({
+        success: true,
+        message: "AI Engine is already running"
+      });
+
+    }
+
     const {
       clientId,
       password,
       totp
     } = req.body;
 
-    await tradingEngine.start(
-      {
-        clientId,
-        password,
-        totp
-      },
-      {
-        dailyTrades: 0,
-        dailyLoss: 0
+    currentCredentials = {
+      clientId,
+      password,
+      totp
+    };
+
+    algoRunning = true;
+
+    (async function runAlgo() {
+
+      while (algoRunning) {
+
+        try {
+
+          console.log("===== NEW SCAN =====");
+
+          await tradingEngine.start(
+            currentCredentials,
+            {
+              dailyTrades: 0,
+              dailyLoss: 0
+            }
+          );
+
+        } catch (err) {
+
+          console.log("Algo Error:", err.message);
+
+        }
+
+        if (!algoRunning) {
+          break;
+        }
+
+        console.log("Waiting 5 minutes...");
+
+        await new Promise(resolve =>
+          setTimeout(resolve, 5 * 60 * 1000)
+        );
+
       }
-    );
+
+      console.log("AI Engine Stopped");
+
+    })();
 
     return res.json({
       success: true,
-      message: 'AI Engine Started'
+      message: "AI Engine Started"
     });
 
   } catch (error) {
+
+    algoRunning = false;
 
     return res.status(500).json({
       success: false,
