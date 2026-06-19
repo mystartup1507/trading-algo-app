@@ -30,10 +30,6 @@ const tradingEngine = require('./engine/tradingEngine');
 const app =
   express();
 
-let algoRunning = false;
-let algoInterval = null;
-let currentCredentials = null;
-
 app.use(cors());
 
 app.use(express.json());
@@ -711,69 +707,6 @@ app.post(
 
   }
 );
-
-app.post('/api/algo/test-order', async (req, res) => {
-
-  try {
-
-    const {
-      clientId,
-      password,
-      totp
-    } = req.body;
-
-    const orderData = {
-
-      variety: "NORMAL",
-
-      tradingsymbol: "SBIN-EQ",
-
-      symboltoken: "3045",
-
-      transactiontype: "BUY",
-
-      exchange: "NSE",
-
-      ordertype: "MARKET",
-
-      producttype: "INTRADAY",
-
-      duration: "DAY",
-
-      quantity: 1
-
-    };
-
-    const result =
-      await placeOrder({
-
-        apiKey: process.env.ANGEL_API_KEY,
-
-        clientId,
-
-        password,
-
-        totp,
-
-        orderData
-
-      });
-
-    return res.json(result);
-
-  } catch (error) {
-
-    return res.status(500).json({
-
-      success: false,
-
-      message: error.message
-
-    });
-
-  }
-
-});
 
 app.listen(
   PORT,
