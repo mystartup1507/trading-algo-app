@@ -68,8 +68,6 @@ class MarketScanner {
       if (!candles.success)
         continue;
 
-      console.log("Candles received:", candles.data.data.length);
-
       markets.push({
 
         symbol: item.symbol,

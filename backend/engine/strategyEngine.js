@@ -118,32 +118,49 @@ class StrategyEngine {
 
         }
 
-        return {
+return {
 
-            signal: "WAIT",
+    signal: "WAIT",
 
-            confidence,
+    confidence,
 
-            indicators: {
+    reason: {
 
-                ema9: lastEMA9,
+        emaTrend: lastEMA9 > lastEMA21,
 
-                ema21: lastEMA21,
+        rsi: lastRSI > 55,
 
-                rsi: lastRSI,
+        vwap: lastClose > lastVWAP,
 
-                atr: atr.at(-1),
+        volume: volume.highVolume,
 
-                vwap: lastVWAP,
+        supertrend:
+            supertrend.length
+                ? supertrend.at(-1).direction
+                : "NONE"
 
-                supertrend:
-                    supertrend.at(-1),
+    },
 
-                volume
+    indicators: {
 
-            }
+        ema9: lastEMA9,
 
-        };
+        ema21: lastEMA21,
+
+        rsi: lastRSI,
+
+        atr: atr.at(-1),
+
+        vwap: lastVWAP,
+
+        supertrend:
+            supertrend.at(-1),
+
+        volume
+
+    }
+
+};
 
     }
 
