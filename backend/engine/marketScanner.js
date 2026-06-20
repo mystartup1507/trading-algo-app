@@ -6,14 +6,60 @@ class MarketScanner {
   constructor() {
 
     this.symbols = [
-
       {
         symbol: "SBIN-EQ",
         token: "3045",
         exchange: "NSE"
       }
-
     ];
+
+  }
+
+  getTradingDay() {
+
+    const now = new Date();
+
+    const ist = new Date(
+      now.toLocaleString("en-US", {
+        timeZone: "Asia/Kolkata"
+      })
+    );
+
+    const day = ist.getDay();
+
+    if (day === 6) {
+      ist.setDate(ist.getDate() - 1);
+    }
+
+    if (day === 0) {
+      ist.setDate(ist.getDate() - 2);
+    }
+
+    return ist;
+
+  }
+
+  formatDate(date) {
+
+    const y = date.getFullYear();
+
+    const m = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const d = String(
+      date.getDate()
+    ).padStart(2, "0");
+
+    const h = String(
+      date.getHours()
+    ).padStart(2, "0");
+
+    const min = String(
+      date.getMinutes()
+    ).padStart(2, "0");
+
+    return `${y}-${m}-${d} ${h}:${min}`;
 
   }
 
@@ -23,58 +69,96 @@ class MarketScanner {
 
     for (const item of this.symbols) {
 
-      const now = new Date();
+      const tradingDay = this.getTradingDay();
 
-      const todate = now
-        .toISOString()
-        .slice(0, 16)
-        .replace("T", " ");
+      const from = new Date(tradingDay);
 
-      const from = new Date(
-        now.getTime() - 100 * 5 * 60 * 1000
+      from.setHours(
+        9,
+        15,
+        0,
+        0
       );
 
-      const fromdate = from
-        .toISOString()
-        .slice(0, 16)
-        .replace("T", " ");
+      const to = new Date(tradingDay);
 
-      const candles = await getCandleData({
+      to.setHours(
+        15,
+        30,
+        0,
+        0
+      );
 
-        apiKey: process.env.ANGEL_API_KEY,
+      const fromdate =
+        this.formatDate(from);
 
-        clientId: credentials.clientId,
+      const todate =
+        this.formatDate(to);
 
-        password: credentials.password,
+      console.log("FROM:", fromdate);
+      console.log("TO:", todate);
+      console.log("EXCHANGE:", item.exchange);
+      console.log("TOKEN:", item.token);
 
-        totp: credentials.totp,
+      const candles =
+        await getCandleData({
 
-        params: {
+          apiKey:
+            process.env.ANGEL_API_KEY,
 
-          exchange: item.exchange,
+          clientId:
+            credentials.clientId,
 
-          symboltoken: item.token,
+          password:
+            credentials.password,
 
-          interval: config.timeframe,
+          totp:
+            credentials.totp,
 
-          fromdate,
+          params: {
 
-          todate
+            exchange:
+              item.exchange,
 
-        }
+            symboltoken:
+              item.token,
 
-      });
+            interval:
+              config.timeframe,
 
-      if (!candles.success)
+            fromdate,
+
+            todate
+
+          }
+
+        });
+
+      if (
+        !candles.success ||
+        !candles.data ||
+        !candles.data.data ||
+        !Array.isArray(candles.data.data)
+      ) {
+
+        console.log("No candle data received.");
+
         continue;
 
-      console.log("Candles received:", candles.data.data.length);
+      }
+
+      console.log(
+        "Candles received:",
+        candles.data.data.length
+      );
 
       markets.push({
 
-        symbol: item.symbol,
+        symbol:
+          item.symbol,
 
-        token: item.token,
+        token:
+          item.token,
 
         candles:
           candles.data.data
