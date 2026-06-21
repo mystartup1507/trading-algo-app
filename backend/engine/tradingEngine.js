@@ -5,6 +5,12 @@ const marketScanner = require("./marketScanner");
 const config = require("../config/strategyConfig");
 
 class TradingEngine {
+  constructor() {
+
+    this.activePositions = {};
+
+  }
+
 
   async start(credentials, account) {
 
@@ -28,27 +34,24 @@ class TradingEngine {
 
       console.log(analysis);
 
-      if (
-    analysis.signal !== "BUY" &&
-    !(
-        config.ai.testMode &&
-        analysis.confidence >= 80
-    )
-) {
+if (this.activePositions[marketData.symbol]) {
 
-    continue;
+  console.log(
+    `Position already active for ${marketData.symbol}`
+  );
+
+  continue;
 
 }
 
 if (
-    config.ai.testMode &&
-    analysis.signal !== "BUY"
+    analysis.signal !== "BUY" ||
+    analysis.confidence < config.ai.confidenceThreshold
 ) {
 
-    console.log("========== TEST MODE ==========");
-    console.log("Confidence:", analysis.confidence);
-    console.log("Proceeding with simulated BUY.");
-    console.log("===============================");
+    console.log("Trade Skipped");
+
+    continue;
 
 }
 
@@ -94,6 +97,30 @@ if (
         );
 
       console.log(result);
+
+      if (
+  result.success &&
+  result.data &&
+  result.data.status
+) {
+
+  this.activePositions[
+    marketData.symbol
+  ] = {
+
+    orderId:
+      result.data.data.orderid,
+
+    entryTime:
+      new Date()
+
+  };
+
+  console.log(
+    "Position Saved"
+  );
+
+}
 
     }
 
