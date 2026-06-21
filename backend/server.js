@@ -18,6 +18,7 @@ const {
 } = require('@supabase/supabase-js');
 
 const {
+  createSession,
   connectAngelBroker,
   placeOrder,
   getProfileData,
@@ -649,6 +650,15 @@ app.post('/api/algo/start', async (req, res) => {
       password,
       totp
     };
+
+     await createSession({
+  apiKey: process.env.ANGEL_API_KEY,
+  clientId,
+  password,
+  totp
+});
+
+console.log("Angel Session Created");
 
     algoRunning = true;
 

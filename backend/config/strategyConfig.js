@@ -40,7 +40,9 @@ module.exports = {
 
         confidenceThreshold: 85,
 
-        minimumVolumeMultiplier: 1.5
+        minimumVolumeMultiplier: 1.5,
+        
+        testMode: true
 
     }
 

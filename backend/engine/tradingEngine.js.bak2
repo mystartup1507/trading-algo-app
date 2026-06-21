@@ -2,7 +2,6 @@ const strategyEngine = require("./strategyEngine");
 const riskManager = require("./riskManager");
 const orderManager = require("./orderManager");
 const marketScanner = require("./marketScanner");
-const config = require("../config/strategyConfig");
 
 class TradingEngine {
 
@@ -28,29 +27,9 @@ class TradingEngine {
 
       console.log(analysis);
 
-      if (
-    analysis.signal !== "BUY" &&
-    !(
-        config.ai.testMode &&
-        analysis.confidence >= 80
-    )
-) {
-
-    continue;
-
-}
-
-if (
-    config.ai.testMode &&
-    analysis.signal !== "BUY"
-) {
-
-    console.log("========== TEST MODE ==========");
-    console.log("Confidence:", analysis.confidence);
-    console.log("Proceeding with simulated BUY.");
-    console.log("===============================");
-
-}
+      if (analysis.signal !== "BUY") {
+        continue;
+      }
 
       const risk =
         riskManager.validateTrade(

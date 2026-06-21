@@ -3,6 +3,9 @@ const SmartApi =
     "smartapi-javascript"
   ).SmartAPI;
 
+let smartApi = null;
+let currentSession = null;
+
 const connectAngelBroker =
   async ({
     apiKey,
@@ -78,6 +81,51 @@ return {
 
 };
 
+const createSession =
+  async ({
+    apiKey,
+    clientId,
+    password,
+    totp
+  }) => {
+
+    smartApi =
+      new SmartApi({
+        api_key: apiKey,
+        default_timeout: 5000
+      });
+
+    smartApi.requestHeaders = {
+      'X-ClientLocalIP': '127.0.0.1',
+      'X-ClientPublicIP': '127.0.0.1',
+      'X-MACAddress': '02:4b:66:09:cc:89',
+      'Accept': 'application/json',
+      'X-PrivateKey': apiKey,
+      'X-UserType': 'USER',
+      'X-SourceID': 'WEB'
+    };
+
+    currentSession =
+      await smartApi.generateSession(
+        clientId,
+        password,
+        totp
+      );
+
+    console.log("SESSION:");
+    console.log(currentSession);
+
+    if (
+      !currentSession ||
+      currentSession.status !== true
+    ) {
+      throw new Error("Angel Session Failed");
+    }
+
+    return smartApi;
+
+};
+
 const placeOrder =
   async ({
     apiKey,
@@ -89,21 +137,21 @@ const placeOrder =
 
     try {
 
-      const smartApi =
-        new SmartApi({
-          api_key: apiKey
-        });
+if (!smartApi) {
 
-      await smartApi.generateSession(
-        clientId,
-        password,
-        totp
-      );
+  await createSession({
+    apiKey,
+    clientId,
+    password,
+    totp
+  });
 
-      const order =
-        await smartApi.placeOrder(
-          orderData
-        );
+}
+
+const order =
+  await smartApi.placeOrder(
+    orderData
+  );
 
       return {
         success: true,
@@ -263,15 +311,16 @@ const getCandleData = async ({
 
   try {
 
-    const smartApi = new SmartApi({
-      api_key: apiKey
-    });
+     if (!smartApi) {
 
-    await smartApi.generateSession(
-      clientId,
-      password,
-      totp
-    );
+  await createSession({
+    apiKey,
+    clientId,
+    password,
+    totp
+  });
+
+}  
 
     const candles =
       await smartApi.getCandleData(
@@ -295,6 +344,7 @@ const getCandleData = async ({
 };
 
 module.exports = {
+  createSession,
   connectAngelBroker,
   placeOrder,
   getProfileData,
