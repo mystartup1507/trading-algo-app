@@ -1,43 +1,72 @@
+
 const { getCandleData } = require("../services/angelService");
+const marketUniverse = require("../services/marketUniverse");
 const config = require("../config/strategyConfig");
+
 
 class MarketScanner {
 
   constructor() {
 
-    this.symbols = [
-      {
-        symbol: "SBIN-EQ",
-        token: "3045",
-        exchange: "NSE"
-      }
-    ];
+    this.symbols = [];
 
   }
 
-  getTradingDay() {
+getTradingDay() {
 
-    const now = new Date();
+  const now = new Date();
 
-    const ist = new Date(
-      now.toLocaleString("en-US", {
-        timeZone: "Asia/Kolkata"
-      })
-    );
+  const ist = new Date(
+    now.toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata"
+    })
+  );
 
-    const day = ist.getDay();
+  const day = ist.getDay();
 
-    if (day === 6) {
-      ist.setDate(ist.getDate() - 1);
-    }
+  const hour = ist.getHours();
 
-    if (day === 0) {
-      ist.setDate(ist.getDate() - 2);
-    }
+  const minute = ist.getMinutes();
 
-    return ist;
-
+  if (
+    day === 1 &&
+    (
+      hour > 15 ||
+      (hour === 15 && minute >= 30)
+    )
+  ) {
+    ist.setDate(ist.getDate() - 3);
   }
+
+  else if (day === 6) {
+    ist.setDate(ist.getDate() - 1);
+  }
+
+  else if (day === 0) {
+    ist.setDate(ist.getDate() - 2);
+  }
+
+  else if (
+  hour < 9 ||
+  (hour === 9 && minute < 15)
+) {
+
+  ist.setDate(ist.getDate() - 1);
+
+}
+
+else if (
+  hour > 15 ||
+  (hour === 15 && minute >= 30)
+) {
+
+  ist.setDate(ist.getDate() - 1);
+
+}
+
+  return ist;
+
+}
 
   formatDate(date) {
 
@@ -67,6 +96,8 @@ class MarketScanner {
 
     const markets = [];
 
+    this.symbols = marketUniverse.load();
+
     for (const item of this.symbols) {
 
       const tradingDay = this.getTradingDay();
@@ -80,14 +111,16 @@ class MarketScanner {
         0
       );
 
-      const to = new Date(tradingDay);
+const to = new Date(tradingDay);
 
-      to.setHours(
-        15,
-        30,
-        0,
-        0
-      );
+to.setHours(
+  15,
+  30,
+  0,
+  0
+);
+
+
 
       const fromdate =
         this.formatDate(from);
@@ -99,6 +132,7 @@ class MarketScanner {
       console.log("TO:", todate);
       console.log("EXCHANGE:", item.exchange);
       console.log("TOKEN:", item.token);
+      console.log("SYMBOL:", item.symbol);
 
       const candles =
         await getCandleData({
@@ -134,23 +168,34 @@ class MarketScanner {
 
         });
 
-      if (
-        !candles.success ||
-        !candles.data ||
-        !candles.data.data ||
-        !Array.isArray(candles.data.data)
-      ) {
+        console.log("===== CANDLE RESPONSE =====");
+console.log(JSON.stringify(candles, null, 2));
 
-        console.log("No candle data received.");
+if (
+  !candles.success ||
+  !candles.data ||
+  !candles.data.data ||
+  !Array.isArray(candles.data.data)
+) {
 
-        continue;
+  console.log("No candle data received.");
 
-      }
+  continue;
+
+}
+
 
       console.log(
         "Candles received:",
         candles.data.data.length
       );
+
+        console.log(JSON.stringify(candles.data, null, 2));        
+
+        console.log(
+  "Last Candle:",
+  candles.data.data.at(-1)
+);
 
       markets.push({
 

@@ -3,6 +3,11 @@ const riskManager = require("./riskManager");
 const orderManager = require("./orderManager");
 const marketScanner = require("./marketScanner");
 const config = require("../config/strategyConfig");
+const optionSelector = require("../services/optionSelector");
+const {
+    getLTPData
+} = require("../services/angelService");
+const positionManager = require("./positionManager");
 
 class TradingEngine {
   constructor() {
@@ -34,10 +39,12 @@ class TradingEngine {
 
       console.log(analysis);
 
-if (this.activePositions[marketData.symbol]) {
+if (
+  Object.keys(this.activePositions).length > 0
+) {
 
   console.log(
-    `Position already active for ${marketData.symbol}`
+    "Active position exists. Skipping new trades."
   );
 
   continue;
@@ -45,7 +52,7 @@ if (this.activePositions[marketData.symbol]) {
 }
 
 if (
-    analysis.signal !== "BUY" ||
+    analysis.signal === "WAIT" ||
     analysis.confidence < config.ai.confidenceThreshold
 ) {
 
@@ -68,27 +75,119 @@ if (
 
       }
 
-      const orderData = {
+      const stockPrice =
+    marketData.candles[
+        marketData.candles.length - 1
+    ][4];
 
-        variety: "NORMAL",
+const stockSymbol =
+    marketData.symbol.replace("-EQ", "");
 
-        tradingsymbol: marketData.symbol,
+const indexName =
+    optionSelector.getIndexForStock(stockSymbol);
 
-        symboltoken: marketData.token,
+const indexToken =
+    optionSelector.getIndexToken(indexName);
 
-        transactiontype: "BUY",
+const ltp =
+    await getLTPData({
 
-        exchange: "NSE",
+        apiKey: process.env.ANGEL_API_KEY,
 
-        ordertype: "MARKET",
+        clientId: credentials.clientId,
 
-        producttype: "INTRADAY",
+        password: credentials.password,
 
-        duration: "DAY",
+        totp: credentials.totp,
 
-        quantity: 1
+        params: {
+            exchange: "NSE",
+            tradingsymbol: indexName,
+            symboltoken: indexToken
+        }
 
-      };
+    });
+
+if (
+    !ltp.success ||
+    !ltp.data ||
+    !ltp.data.data
+) {
+
+    console.log("Unable to fetch Index LTP");
+
+    continue;
+
+}
+
+const entryPrice =
+    Number(
+        ltp.data.data.fetched[0].ltp
+    );
+
+console.log("INDEX LTP :", entryPrice);
+
+const option =
+    optionSelector.getATMOption(
+        stockSymbol,
+        analysis.signal,
+        entryPrice
+    );
+
+if (!option) {
+
+    console.log("No suitable option found");
+    continue;
+
+}
+
+console.log("Selected Option:");
+console.log(option);
+
+const stopLoss =
+  Number(
+    (
+      entryPrice -
+      analysis.indicators.atr * 2
+    ).toFixed(2)
+  );
+
+const target =
+  Number(
+    (
+      entryPrice +
+      (entryPrice - stopLoss) * 2
+    ).toFixed(2)
+  );
+
+console.log("ENTRY :", entryPrice);
+console.log("SL    :", stopLoss);
+console.log("TARGET:", target);
+       
+       const orderData = {
+
+  variety: "NORMAL",
+
+  tradingsymbol: option.symbol,
+
+  symboltoken: option.token,
+
+  transactiontype:
+    analysis.signal === "SELL"
+      ? "BUY"
+      : "BUY",
+
+  exchange: "NFO",
+
+  ordertype: "MARKET",
+
+  producttype: "INTRADAY",
+
+  duration: "DAY",
+
+  quantity: Number(option.lotsize)
+
+};
 
       const result =
         await orderManager.executeAngelOrder(
@@ -96,25 +195,73 @@ if (
           orderData
         );
 
-      console.log(result);
-
-      if (
+       if (
   result.success &&
   result.data &&
   result.data.status
 ) {
 
-  this.activePositions[
-    marketData.symbol
-  ] = {
+  console.log("===============");
+  console.log("TRADE DETAILS");
+  console.log("Entry :", entryPrice);
+  console.log("SL    :", stopLoss);
+  console.log("Target:", target);
+  console.log("===============");
 
-    orderId:
-      result.data.data.orderid,
+}
 
-    entryTime:
-      new Date()
+      console.log(result);
 
-  };
+if (
+  result.success &&
+  result.data &&
+  result.data.status
+) {
+
+  const orderStatus =
+    await orderManager.waitForOrderCompletion(
+      credentials,
+      result.data.data.orderid
+    );
+
+  console.log(orderStatus);
+
+  if (!orderStatus.success) {
+
+    console.log("Order was not completed.");
+
+    continue;
+
+  }
+
+this.activePositions[
+  marketData.symbol
+] = {
+
+  credentials,
+
+  symbol: marketData.symbol,
+
+  option: option.symbol,
+
+  optionToken: option.token,
+
+  exchange: "NFO",
+
+  orderId: orderStatus.order.orderid,
+
+  entry: entryPrice,
+
+  sl: stopLoss,
+
+  target: target,
+
+  quantity: Number(option.lotsize),
+
+  entryTime: new Date(),
+  orderStatus: "COMPLETE"
+
+};
 
   console.log(
     "Position Saved"
@@ -123,6 +270,10 @@ if (
 }
 
     }
+
+      await positionManager.monitor(
+      this.activePositions
+    );
 
   }
 

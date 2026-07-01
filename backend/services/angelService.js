@@ -1,3 +1,4 @@
+
 const SmartApi =
   require(
     "smartapi-javascript"
@@ -69,15 +70,20 @@ return {
   success: true,
   data: session
 };
-    } catch (error) {
 
-      return {
-        success: false,
-        message:
-          error.message
-      };
+} catch (error) {
 
-    }
+  console.log("========== LTP API ERROR ==========");
+  console.log(error);
+  console.log("===================================");
+
+  return {
+    success: false,
+    message: error.message,
+    error
+  };
+
+}
 
 };
 
@@ -148,10 +154,35 @@ if (!smartApi) {
 
 }
 
-const order =
-  await smartApi.placeOrder(
-    orderData
-  );
+console.log("========== ORDER PAYLOAD ==========");
+console.log(JSON.stringify(orderData, null, 2));
+
+const order = await smartApi.placeOrder(orderData);
+
+console.log("========== ORDER RESPONSE ==========");
+console.log(JSON.stringify(order, null, 2));
+
+if (
+    order.status &&
+    order.data &&
+    order.data.orderid
+) {
+
+    const book =
+        await smartApi.getOrderBook();
+
+    console.log("========== ORDER BOOK ==========");
+
+const failed = book.data.find(
+    o => o.orderid === order.data.orderid
+);
+
+console.log(JSON.stringify(failed, null, 2));
+
+}
+
+console.log("========== ORDER RESPONSE ==========");
+console.log(JSON.stringify(order, null, 2));
 
       return {
         success: true,
@@ -284,7 +315,7 @@ const getPositions = async ({
       totp
     );
 
-    const positions = await smartApi.position();
+    const positions = await smartApi.getPosition();
 
     return {
       success: true,
@@ -343,11 +374,129 @@ const getCandleData = async ({
 
 };
 
+const getLTPData = async ({
+  apiKey,
+  clientId,
+  password,
+  totp,
+  params
+}) => {
+
+  try {
+
+    if (!smartApi) {
+
+      await createSession({
+        apiKey,
+        clientId,
+        password,
+        totp
+      });
+
+    }
+
+    console.log("===== LTP REQUEST =====");
+console.log(params);
+
+const ltp = await smartApi.marketData({
+
+    mode: "LTP",
+
+    exchangeTokens: {
+
+        [params.exchange]: [
+
+            String(params.symboltoken)
+
+        ]
+
+    }
+
+});
+
+console.log("===== MARKET DATA =====");
+console.log(JSON.stringify(ltp, null, 2));
+
+return {
+    success: true,
+    data: ltp
+};
+
+}   catch (error) {
+
+    console.log("===== LTP ERROR =====");
+    console.log(error);
+
+    return {
+        success: false,
+        message: error.message
+    };
+
+}
+
+
+};
+
+const getMarketData = async ({
+  apiKey,
+  clientId,
+  password,
+  totp,
+  mode,
+  exchange,
+  symboltoken
+}) => {
+
+  try {
+
+    if (!smartApi) {
+
+      await createSession({
+        apiKey,
+        clientId,
+        password,
+        totp
+      });
+
+    }
+
+    const data = await smartApi.marketData({
+
+      mode,
+
+      exchangeTokens: {
+
+        [exchange]: [
+          String(symboltoken)
+        ]
+
+      }
+
+    });
+
+    return {
+      success: true,
+      data
+    };
+
+  } catch (error) {
+
+    return {
+      success: false,
+      message: error.message
+    };
+
+  }
+
+};
+
 module.exports = {
   createSession,
   connectAngelBroker,
   placeOrder,
   getProfileData,
   getPositions,
-  getCandleData
+  getCandleData,
+  getLTPData,
+  getMarketData
 };

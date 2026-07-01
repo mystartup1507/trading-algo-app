@@ -11,7 +11,7 @@ class StrategyEngine {
 
     analyze(candles) {
 
-        if (!candles || candles.length < 50) {
+        if (!candles || candles.length < 25) {
 
             return {
 
@@ -92,6 +92,7 @@ class StrategyEngine {
             return {
 
                 signal: "BUY",
+
 
                 confidence,
 

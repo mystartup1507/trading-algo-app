@@ -30,11 +30,9 @@ function calculateSupertrend(candles, multiplier = 3) {
             lowerBand,
 
             direction:
-                close > upperBand
-                    ? "BUY"
-                    : close < lowerBand
-                    ? "SELL"
-                    : "WAIT"
+    close >= hl2
+        ? "BUY"
+        : "SELL"
 
         });
 

@@ -38,7 +38,7 @@ module.exports = {
 
     ai: {
 
-        confidenceThreshold: 85,
+        confidenceThreshold: 60,
 
         minimumVolumeMultiplier: 1.5,
         

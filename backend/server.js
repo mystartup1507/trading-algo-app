@@ -688,11 +688,11 @@ console.log("Angel Session Created");
           break;
         }
 
-        console.log("Waiting 5 minutes...");
+         console.log("Waiting 30 seconds...");
 
-        await new Promise(resolve =>
-          setTimeout(resolve, 5 * 60 * 1000)
-        );
+await new Promise(resolve =>
+  setTimeout(resolve, 30 * 1000)
+);
 
       }
 
