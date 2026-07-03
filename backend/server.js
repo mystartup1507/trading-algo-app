@@ -668,6 +668,40 @@ console.log("Angel Session Created");
 
         try {
 
+          const now = new Date(
+  new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Kolkata"
+  })
+);
+
+const day = now.getDay();
+const hour = now.getHours();
+const minute = now.getMinutes();
+
+const marketOpen =
+  day >= 1 &&
+  day <= 5 &&
+  (
+    hour > 9 ||
+    (hour === 9 && minute >= 15)
+  ) &&
+  (
+    hour < 15 ||
+    (hour === 15 && minute <= 30)
+  );
+
+if (!marketOpen) {
+
+  console.log("Market Closed. Waiting...");
+
+  await new Promise(resolve =>
+    setTimeout(resolve, 60000)
+  );
+
+  continue;
+
+}
+
           console.log("===== NEW SCAN =====");
 
           await tradingEngine.start(

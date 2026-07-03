@@ -95,6 +95,16 @@ const createSession =
     totp
   }) => {
 
+if (
+  smartApi &&
+  currentSession &&
+  currentSession.status === true
+) {
+
+  return smartApi;
+
+}
+
     smartApi =
       new SmartApi({
         api_key: apiKey,
@@ -201,6 +211,40 @@ console.log(JSON.stringify(order, null, 2));
 
 };
 
+const getOrderBook = async ({
+  apiKey,
+  clientId,
+  password,
+  totp
+}) => {
+
+  try {
+
+const smartApi = await createSession({
+  apiKey,
+  clientId,
+  password,
+  totp
+});
+
+    const orders = await smartApi.getOrderBook();
+
+    return {
+      success: true,
+      data: orders
+    };
+
+  } catch (error) {
+
+    return {
+      success: false,
+      message: error.message
+    };
+
+  }
+
+};
+
 const getProfileData =
   async ({
     apiKey,
@@ -295,25 +339,12 @@ const getPositions = async ({
 }) => {
   try {
 
-    const smartApi = new SmartApi({
-      api_key: apiKey
-    });
-
-    smartApi.requestHeaders = {
-      'X-ClientLocalIP': '127.0.0.1',
-      'X-ClientPublicIP': '127.0.0.1',
-      'X-MACAddress': '02:4b:66:09:cc:89',
-      'Accept': 'application/json',
-      'X-PrivateKey': apiKey,
-      'X-UserType': 'USER',
-      'X-SourceID': 'WEB'
-    };
-
-    await smartApi.generateSession(
-      clientId,
-      password,
-      totp
-    );
+const smartApi = await createSession({
+    apiKey,
+    clientId,
+    password,
+    totp
+});
 
     const positions = await smartApi.getPosition();
 
@@ -496,6 +527,7 @@ module.exports = {
   placeOrder,
   getProfileData,
   getPositions,
+  getOrderBook,
   getCandleData,
   getLTPData,
   getMarketData

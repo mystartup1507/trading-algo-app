@@ -224,15 +224,26 @@ if (
       result.data.data.orderid
     );
 
-  console.log(orderStatus);
+   console.log("===== ORDER COMPLETION RESULT =====");
+console.log(JSON.stringify(orderStatus, null, 2));
 
-  if (!orderStatus.success) {
+if (!orderStatus.success) {
 
-    console.log("Order was not completed.");
+    if (orderStatus.amoPending) {
+
+        console.log(
+            "AMO Order Pending. Waiting for market open."
+        );
+
+    } else {
+
+        console.log("Order was not completed.");
+
+    }
 
     continue;
 
-  }
+}
 
 this.activePositions[
   marketData.symbol

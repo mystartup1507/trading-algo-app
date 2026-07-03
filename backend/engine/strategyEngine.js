@@ -49,11 +49,11 @@ class StrategyEngine {
         const volume =
             analyzeVolume(candles);
 
-        const lastEMA9 =
-            ema.ema9.at(-1);
+        const prevEMA9 = ema.ema9.at(-2);
+const lastEMA9 = ema.ema9.at(-1);
 
-        const lastEMA21 =
-            ema.ema21.at(-1);
+const prevEMA21 = ema.ema21.at(-2);
+const lastEMA21 = ema.ema21.at(-1);
 
         const lastRSI =
             rsi.at(-1);
@@ -66,8 +66,12 @@ class StrategyEngine {
 
         let confidence = 0;
 
-        if (lastEMA9 > lastEMA21)
-            confidence += 20;
+        const emaBullishCross =
+    prevEMA9 <= prevEMA21 &&
+    lastEMA9 > lastEMA21;
+
+if (emaBullishCross)
+    confidence += 20;
 
         if (lastRSI > 55)
             confidence += 20;
@@ -83,6 +87,16 @@ class StrategyEngine {
             supertrend.at(-1).direction === "BUY"
         )
             confidence += 20;
+
+        console.log({
+    emaBullishCross,
+    rsi: lastRSI,
+    vwap: lastClose > lastVWAP,
+    volume: volume.highVolume,
+    supertrend:
+        supertrend.at(-1).direction,
+    confidence
+});
 
         if (
             confidence >=

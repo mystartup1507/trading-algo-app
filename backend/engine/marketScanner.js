@@ -8,7 +8,7 @@ class MarketScanner {
 
   constructor() {
 
-    this.symbols = [];
+    this.symbols = marketUniverse.load();
 
   }
 
@@ -96,7 +96,6 @@ else if (
 
     const markets = [];
 
-    this.symbols = marketUniverse.load();
 
     for (const item of this.symbols) {
 
@@ -167,6 +166,8 @@ to.setHours(
           }
 
         });
+
+         await new Promise(resolve => setTimeout(resolve, 300));
 
         console.log("===== CANDLE RESPONSE =====");
 console.log(JSON.stringify(candles, null, 2));

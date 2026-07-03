@@ -1,0 +1,120 @@
+const {
+  placeOrder,
+  getPositions,
+  getOrderBook
+} = require("../services/angelService");
+
+class OrderManager {
+
+  async executeAngelOrder(credentials, orderData) {
+
+    console.log("===== ORDER MANAGER =====");
+    console.log({
+      clientId: credentials.clientId,
+      hasPassword: !!credentials.password,
+      hasTotp: !!credentials.totp
+    });
+
+    return await placeOrder({
+      apiKey: process.env.ANGEL_API_KEY,
+      clientId: credentials.clientId,
+      password: credentials.password,
+      totp: credentials.totp,
+      orderData
+    });
+
+  }
+
+async getOpenPositions(credentials) {
+
+  return await getPositions({
+
+    apiKey: process.env.ANGEL_API_KEY,
+
+    clientId: credentials.clientId,
+
+    password: credentials.password,
+
+    totp: credentials.totp
+
+  });
+
+}
+
+async waitForOrderCompletion(credentials, orderId) {
+
+    for (let i = 0; i < 20; i++) {
+
+        const book = await getOrderBook({
+            apiKey: process.env.ANGEL_API_KEY,
+            clientId: credentials.clientId,
+            password: credentials.password,
+            totp: credentials.totp
+        });
+
+        if (
+            book.success &&
+            book.data &&
+            book.data.data
+        ) {
+
+            const order = book.data.data.find(
+                o => o.orderid === orderId
+            );
+
+            if (!order) {
+
+                await new Promise(r => setTimeout(r,1000));
+                continue;
+
+            }
+
+            console.log("ORDER STATUS :", order.orderstatus);
+
+const status =
+    String(order.orderstatus).toLowerCase();
+
+if (
+    status === "complete" ||
+    status === "filled" ||
+    status === "executed"
+) {
+
+    return {
+        success: true,
+        order
+    };
+
+}
+
+if (
+    status === "rejected" ||
+    status === "cancelled" ||
+    status === "failed"
+) {
+
+    return {
+        success: false,
+        order
+    };
+
+}
+
+console.log("Waiting for execution...");
+
+
+        }
+
+        await new Promise(r => setTimeout(r,1000));
+
+    }
+
+    return {
+        success:false,
+        timeout:true
+    };
+
+}
+
+}
+module.exports = new OrderManager();

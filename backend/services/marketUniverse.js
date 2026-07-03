@@ -38,6 +38,63 @@ if (!equity) {
   continue;
 }
 
+const allowed = [
+"NIFTY",
+"BANKNIFTY",
+"RELIANCE",
+"HDFCBANK",
+"ICICIBANK",
+"SBIN",
+"TCS",
+"INFY",
+"LT",
+"AXISBANK",
+"BAJFINANCE",
+"KOTAKBANK",
+"ITC",
+"HINDUNILVR",
+"MARUTI",
+"M&M",
+"TITAN",
+"ULTRACEMCO",
+"SUNPHARMA",
+"BHARTIARTL",
+"NTPC",
+"POWERGRID",
+"ADANIENT",
+"ADANIPORTS",
+"TATASTEEL",
+"JSWSTEEL",
+"HCLTECH",
+"WIPRO",
+"TECHM",
+"INDUSINDBK",
+"TATAMOTORS",
+"ONGC",
+"COALINDIA",
+"CIPLA",
+"DRREDDY",
+"GRASIM",
+"EICHERMOT",
+"HEROMOTOCO",
+"BAJAJFINSV",
+"BAJAJ-AUTO",
+"NESTLEIND",
+"ASIANPAINT",
+"SHRIRAMFIN",
+"BEL",
+"HAL",
+"DLF",
+"PNB",
+"CANBK",
+"SAIL",
+"IOC"
+];
+
+if (!allowed.includes(item.name)) {
+    continue;
+}
+
 universe.push({
   name: item.name,
   symbol: equity.symbol,

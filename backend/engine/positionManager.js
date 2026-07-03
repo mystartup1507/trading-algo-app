@@ -1,5 +1,6 @@
 const ltpService = require("../services/ltpService");
-const { placeOrder } = require("../services/angelService");
+const orderManager =
+require("./orderManager");
 
 class PositionManager {
 
@@ -42,49 +43,52 @@ class PositionManager {
             : "TARGET HIT"
     );
 
-    const result = await placeOrder({
+const result = await orderManager.executeAngelOrder(
+    position.credentials,
+    {
+        variety: "NORMAL",
+        tradingsymbol: position.option,
+        symboltoken: position.optionToken,
+        transactiontype: "SELL",
+        exchange: "NFO",
+        ordertype: "MARKET",
+        producttype: "INTRADAY",
+        duration: "DAY",
+        quantity: position.quantity
+    }
+);
 
-        apiKey: process.env.ANGEL_API_KEY,
+console.log(result);
 
-        clientId: position.credentials.clientId,
+if (
+    result.success &&
+    result.data &&
+    result.data.status
+) {
 
-        password: position.credentials.password,
+    const exitStatus =
+        await orderManager.waitForOrderCompletion(
+            position.credentials,
+            result.data.data.orderid
+        );
 
-        totp: position.credentials.totp,
+    console.log("===== EXIT ORDER STATUS =====");
+    console.log(JSON.stringify(exitStatus, null, 2));
 
-        orderData: {
-
-            variety: "NORMAL",
-
-            tradingsymbol: position.option,
-
-            symboltoken: position.optionToken,
-
-            transactiontype: "SELL",
-
-            exchange: "NFO",
-
-            ordertype: "MARKET",
-
-            producttype: "INTRADAY",
-
-            duration: "DAY",
-
-            quantity: position.quantity
-
-        }
-
-    });
-
-    console.log(result);
-
-    if (result.success) {
+    if (exitStatus.success) {
 
         delete activePositions[symbol];
 
         console.log("Position Closed");
 
+    } else {
+
+        console.log("Exit order not completed.");
+
     }
+
+}
+
 
 }
 
