@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from account import account_service
 from market import market_service
+from indicators import indicator_service
 
 app = Flask(__name__)
 
@@ -42,6 +43,17 @@ def candles(symbol, timeframe, count):
         symbol.upper(),
         timeframe.upper(),
         count
+    )
+
+    return jsonify(result)
+
+@app.route("/indicator/ema/<symbol>/<timeframe>/<int:period>")
+def ema(symbol, timeframe, period):
+
+    result = indicator_service.ema(
+        symbol.upper(),
+        timeframe.upper(),
+        period
     )
 
     return jsonify(result)
