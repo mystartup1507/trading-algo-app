@@ -97,6 +97,59 @@ class MT5Indicators:
                 "rsi": round(rsi_values[-1], 2)
             }
         }
+
+    def atr(self, symbol, timeframe, period):
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            max(period + 100, 200)
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        if len(df) <= period:
+            return {
+                "success": False,
+                "message": "Not enough candle data.",
+                "data": None
+            }
+
+        high = df["high"].tolist()
+        low = df["low"].tolist()
+        close = df["close"].tolist()
+
+        true_ranges = []
+
+        for i in range(1, len(df)):
+
+            tr = max(
+                high[i] - low[i],
+                abs(high[i] - close[i - 1]),
+                abs(low[i] - close[i - 1])
+            )
+
+            true_ranges.append(tr)
+
+        atr = sum(true_ranges[:period]) / period
+
+        for tr in true_ranges[period:]:
+
+            atr = ((atr * (period - 1)) + tr) / period
+
+        return {
+            "success": True,
+            "message": "ATR calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "period": period,
+                "atr": round(atr, 5)
+            }
+        }
       
 
 

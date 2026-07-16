@@ -70,6 +70,17 @@ def rsi(symbol, timeframe, period):
 
     return jsonify(result)
 
+@app.route("/indicator/atr/<symbol>/<timeframe>/<int:period>")
+def atr(symbol, timeframe, period):
+
+    result = indicator_service.atr(
+        symbol,
+        timeframe,
+        period
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
