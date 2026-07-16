@@ -81,6 +81,18 @@ def atr(symbol, timeframe, period):
 
     return jsonify(result)
 
+@app.route("/indicator/supertrend/<symbol>/<timeframe>/<int:period>/<int:multiplier>")
+def supertrend(symbol, timeframe, period, multiplier):
+
+    result = indicator_service.supertrend(
+        symbol,
+        timeframe,
+        period,
+        multiplier
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",

@@ -33,7 +33,6 @@ class MT5Indicators:
             }
         }
 
-    
     def rsi(self, symbol, timeframe, period):
 
         candles = market_service.get_candles(
@@ -117,6 +116,22 @@ class MT5Indicators:
                 "message": "Not enough candle data.",
                 "data": None
             }
+        atr_values = self._calculate_atr(df, period)
+
+        atr = atr_values[-1]
+        
+        return {
+            "success": True,
+            "message": "ATR calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "period": period,
+                "atr": round(atr, 5)
+            }
+        }
+
+    def _calculate_atr(self, df, period):
 
         high = df["high"].tolist()
         low = df["low"].tolist()
@@ -136,21 +151,146 @@ class MT5Indicators:
 
         atr = sum(true_ranges[:period]) / period
 
+        atr_values = [None] * period
+
+        atr_values.append(atr)
+
         for tr in true_ranges[period:]:
 
             atr = ((atr * (period - 1)) + tr) / period
 
+            atr_values.append(atr)
+
+        return atr_values
+
+    def supertrend(self, symbol, timeframe, period, multiplier):
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            max(period + 100, 200)
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        if len(df) <= period:
+            return {
+                "success": False,
+                "message": "Not enough candle data.",
+                "data": None
+            }
+
+        atr_values = self._calculate_atr(df, period)
+
+        df["atr"] = atr_values
+        
+        df = df.dropna().reset_index(drop=True)
+
+        df["hl2"] = (df["high"] + df["low"]) / 2
+
+        df["basic_upper_band"] = (
+            df["hl2"] + (multiplier * df["atr"])
+        )
+
+        df["basic_lower_band"] = (
+            df["hl2"] - (multiplier * df["atr"])
+        )
+        final_upper_band = []
+        final_lower_band = []
+
+        for i in range(len(df)):
+
+            if i == 0:
+                final_upper_band.append(df["basic_upper_band"].iloc[i])
+                final_lower_band.append(df["basic_lower_band"].iloc[i])
+                continue
+
+            previous_close = df["close"].iloc[i - 1]
+
+            current_upper = df["basic_upper_band"].iloc[i]
+            previous_upper = final_upper_band[i - 1]
+
+            if (
+                current_upper < previous_upper
+                or previous_close > previous_upper
+            ):
+                final_upper_band.append(current_upper)
+            else:
+                final_upper_band.append(previous_upper)
+
+            current_lower = df["basic_lower_band"].iloc[i]
+            previous_lower = final_lower_band[i - 1]
+
+            if (
+                current_lower > previous_lower
+                or previous_close < previous_lower
+            ):
+                final_lower_band.append(current_lower)
+            else:
+                final_lower_band.append(previous_lower)
+
+        df["final_upper_band"] = final_upper_band
+        df["final_lower_band"] = final_lower_band 
+   
+        supertrend = []
+        trend = []
+
+        for i in range(len(df)):
+
+            if i == 0:
+
+                if df["close"].iloc[i] >= final_lower_band[i]:
+                      supertrend.append(final_lower_band[i])
+                      trend.append("BUY")
+                else:
+                      supertrend.append(final_upper_band[i])
+                      trend.append("SELL")
+
+                continue
+
+            previous_supertrend = supertrend[i - 1]
+
+            current_close = df["close"].iloc[i]
+            current_high = df["high"].iloc[i]
+            current_low = df["low"].iloc[i]
+
+            if previous_supertrend == final_upper_band[i - 1]:
+
+                if current_high <= final_upper_band[i]:
+                    supertrend.append(final_upper_band[i])
+                    trend.append("SELL")
+                else:
+                    supertrend.append(final_lower_band[i])
+                    trend.append("BUY")
+
+            else:
+
+                if current_low >= final_lower_band[i]:
+                    supertrend.append(final_lower_band[i])
+                    trend.append("BUY")
+                else:
+                    supertrend.append(final_upper_band[i])
+                    trend.append("SELL")
+
+        df["supertrend"] = supertrend
+        df["trend"] = trend
+
+        latest = df.iloc[-1]
+
         return {
             "success": True,
-            "message": "ATR calculated successfully.",
+            "message": "Supertrend calculated successfully.",
             "data": {
                 "symbol": symbol,
                 "timeframe": timeframe,
                 "period": period,
-                "atr": round(atr, 5)
+                "multiplier": multiplier,
+                "trend": latest["trend"],
+                "supertrend": round(float(latest["supertrend"]), 5)
             }
         }
-      
-
 
 indicator_service = MT5Indicators()
