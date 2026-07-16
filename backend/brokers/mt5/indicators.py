@@ -293,4 +293,56 @@ class MT5Indicators:
             }
         }
 
+    def macd(self, symbol, timeframe):
+        
+    
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            200
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        close = df["close"]
+
+        ema_fast = close.ewm(
+            span=12,
+            adjust=False
+        ).mean()
+
+        ema_slow = close.ewm(
+            span=26,
+            adjust=False
+        ).mean()
+
+        macd_line = ema_fast - ema_slow
+
+        signal_line = macd_line.ewm(
+            span=9,
+            adjust=False
+        ).mean()
+
+        histogram = macd_line - signal_line
+
+        return {
+            "success": True,
+            "message": "MACD calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "fast_period": 12,
+                "slow_period": 26,
+                "signal_period": 9,
+                "macd": round(float(macd_line.iloc[-1]), 5),
+                "signal": round(float(signal_line.iloc[-1]), 5),
+                "histogram": round(float(histogram.iloc[-1]), 5)
+            }
+        }
+    
+
 indicator_service = MT5Indicators()

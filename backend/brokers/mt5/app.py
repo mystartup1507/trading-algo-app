@@ -93,6 +93,19 @@ def supertrend(symbol, timeframe, period, multiplier):
 
     return jsonify(result)
 
+@app.route(
+    "/indicator/macd/<symbol>/<timeframe>",
+    methods=["GET"]
+)
+def macd(symbol, timeframe):
+
+    result = indicator_service.macd(
+        symbol.upper(),
+        timeframe.upper()
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
