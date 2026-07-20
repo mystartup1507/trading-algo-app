@@ -101,7 +101,7 @@ class MT5Market:
         rates = mt5.copy_rates_from_pos(
             symbol,
             timeframe_map[timeframe],
-            0,
+            1,
             int(count)
         )
 

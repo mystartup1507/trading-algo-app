@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import json
+import os
 from market import market_service
 
 
@@ -343,6 +346,52 @@ class MT5Indicators:
                 "histogram": round(float(histogram.iloc[-1]), 5)
             }
         }
-    
+
+    def adx(self, symbol, timeframe, period=14):
+
+        json_path = os.getenv("MT5_ADX_FILE")
+  
+        if not json_path:
+        return {
+            "success": False,
+            "message": "MT5_ADX_FILE environment variable is not configured."
+        }
+
+        if not os.path.exists(json_path):
+            return {
+                "success": False,
+                "message": "adx.json not found. Please ensure the MT5 Bridge EA is running."
+            }
+
+        try:
+            with open(json_path, "r", encoding="utf-16") as f:
+                content = f.read().strip()
+
+            if not content:
+                return {
+                    "success": False,
+                    "message": "adx.json is empty. MT5 is updating the file. Please try again."
+                }
+
+            data = json.loads(content)
+
+            return {
+                "success": True,
+                "message": "ADX loaded from MT5 Bridge.",
+                "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "period": period,
+                "adx": float(data["adx"]),
+                "+di": float(data["plus_di"]),
+                "-di": float(data["minus_di"])
+            }
+        }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": str(e)
+            }
 
 indicator_service = MT5Indicators()

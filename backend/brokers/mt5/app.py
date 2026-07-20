@@ -106,6 +106,22 @@ def macd(symbol, timeframe):
 
     return jsonify(result)
 
+@app.route(
+    "/indicator/adx/<symbol>/<timeframe>/<int:period>",
+    methods=["GET"]
+)
+def adx(symbol, timeframe, period):
+
+    result = indicator_service.adx(
+        symbol.upper(),
+        timeframe.upper(),
+        period
+    )
+
+    return jsonify(result)
+
+
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
