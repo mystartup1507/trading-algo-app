@@ -214,6 +214,77 @@ def get_positions():
 
     return jsonify(result)
 
+@app.route("/market-order", methods=["POST"])
+def market_order():
+
+    data = request.get_json()
+
+    result = indicator_service.market_order(
+        symbol=data["symbol"],
+        volume=data["volume"],
+        order_type=data["order_type"],
+        sl=data.get("sl", 0.0),
+        tp=data.get("tp", 0.0),
+        comment=data.get("comment", "JD-Algo"),
+        magic=data.get("magic", 1001)
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/close-position", methods=["POST"])
+def close_position():
+
+    data = request.get_json()
+
+    result = indicator_service.close_position(
+        ticket=data["ticket"]
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/modify-position", methods=["POST"])
+def modify_position():
+
+    data = request.get_json()
+
+    result = indicator_service.modify_position(
+        ticket=data["ticket"],
+        sl=data.get("sl"),
+        tp=data.get("tp")
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/pending-order", methods=["POST"])
+def pending_order():
+
+    data = request.get_json()
+
+    result = indicator_service.pending_order(
+        symbol=data["symbol"],
+        volume=data["volume"],
+        order_type=data["order_type"],
+        price=data["price"],
+        sl=data.get("sl", 0.0),
+        tp=data.get("tp", 0.0),
+        comment=data.get("comment", "JD-Algo Pending"),
+        magic=data.get("magic", 1001)
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",

@@ -3,6 +3,7 @@ import numpy as np
 import json
 import os
 from market import market_service
+from execution import execution_service
 
 
 class MT5Indicators:
@@ -14,6 +15,27 @@ class MT5Indicators:
     def positions(self):
 
         return market_service.get_positions()
+
+    def market_order(
+        self,
+        symbol,
+        volume,
+        order_type,
+        sl=0.0,
+        tp=0.0,
+        comment="JD-Algo",
+        magic=1001
+    ):
+
+        return execution_service.market_order(
+            symbol,
+            volume,
+            order_type,
+            sl,
+            tp,
+            comment,
+            magic
+        )
 
     def ema(self, symbol, timeframe, period):
 
@@ -43,6 +65,42 @@ class MT5Indicators:
                 "ema": float(df["ema"].iloc[-1])
             }
         }
+    
+    def close_position(self, ticket):
+
+        return execution_service.close_position(ticket)
+
+    def modify_position(self, ticket, sl=None, tp=None):
+
+        return execution_service.modify_position(
+            ticket,
+            sl,
+            tp
+        )
+
+    def pending_order(
+        self,
+        symbol,
+        volume,
+        order_type,
+        price,
+        sl=0.0,
+        tp=0.0,
+        comment="JD-Algo Pending",
+        magic=1001
+    ):
+
+        
+        return execution_service.pending_order(
+            symbol,
+            volume,
+            order_type,
+            price,
+            sl,
+            tp,
+            comment,
+            magic
+        )
 
     def rsi(self, symbol, timeframe, period):
 

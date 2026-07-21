@@ -70,6 +70,38 @@ class MT5Market:
                 "time": tick.time
             }
         }
+
+    def get_live_price(self, symbol):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        tick = mt5.symbol_info_tick(symbol)
+
+        if tick is None:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": f"Unable to fetch live price for {symbol}.",
+                "data": None
+            }
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": "Live price fetched successfully.",
+            "data": {
+                "bid": tick.bid,
+                "ask": tick.ask
+            }
+        }
+
+    
     
     def get_symbol_info(self, symbol):
 
@@ -104,7 +136,8 @@ class MT5Market:
                 "point": info.point,
                 "trade_contract_size": info.trade_contract_size,
                 "trade_stops_level": info.trade_stops_level,
-                "trade_freeze_level": info.trade_freeze_level
+                "trade_freeze_level": info.trade_freeze_level,
+                "trade_mode": info.trade_mode
            }
         }
 
