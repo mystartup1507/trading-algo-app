@@ -7,6 +7,14 @@ from market import market_service
 
 class MT5Indicators:
 
+    def account_info(self):
+
+        return market_service.get_account_info()
+
+    def positions(self):
+
+        return market_service.get_positions()
+
     def ema(self, symbol, timeframe, period):
 
         candles = market_service.get_candles(
@@ -352,10 +360,10 @@ class MT5Indicators:
         json_path = os.getenv("MT5_ADX_FILE")
   
         if not json_path:
-        return {
-            "success": False,
-            "message": "MT5_ADX_FILE environment variable is not configured."
-        }
+            return {
+                "success": False,
+                "message": "MT5_ADX_FILE environment variable is not configured."
+            }
 
         if not os.path.exists(json_path):
             return {
@@ -364,7 +372,7 @@ class MT5Indicators:
             }
 
         try:
-            with open(json_path, "r", encoding="utf-16") as f:
+            with open(json_path, "r") as f:
                 content = f.read().strip()
 
             if not content:
@@ -393,5 +401,9 @@ class MT5Indicators:
                 "success": False,
                 "message": str(e)
             }
+
+    def symbol_info(self, symbol):
+
+        return market_service.get_symbol_info(symbol)    
 
 indicator_service = MT5Indicators()

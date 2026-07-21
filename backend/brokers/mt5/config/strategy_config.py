@@ -1,0 +1,23 @@
+class StrategyConfig:
+
+    EMA_FAST = 20
+    EMA_SLOW = 50
+
+    RSI_PERIOD = 14
+    RSI_BUY_LEVEL = 55
+    RSI_SELL_LEVEL = 45
+
+    ADX_PERIOD = 14
+    ADX_MIN_STRENGTH = 20
+
+    ATR_PERIOD = 14
+
+    MACD_FAST = 12
+    MACD_SLOW = 26
+    MACD_SIGNAL = 9
+
+    RISK_PERCENT = 1.0
+
+    MAX_OPEN_TRADES = 1
+
+    STRATEGY_NAME = "EMA-RSI-ADX V1"

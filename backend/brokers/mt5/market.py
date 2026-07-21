@@ -70,6 +70,128 @@ class MT5Market:
                 "time": tick.time
             }
         }
+    
+    def get_symbol_info(self, symbol):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        info = mt5.symbol_info(symbol)
+
+        if info is None:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": f"Unable to fetch symbol information for {symbol}.",
+                    "data": None
+            }
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": "Symbol information fetched successfully.",
+            "data": {
+                "symbol": symbol,
+                "bid": info.bid,
+                "ask": info.ask,
+                "spread": info.spread,
+                "digits": info.digits,
+                "point": info.point,
+                "trade_contract_size": info.trade_contract_size,
+                "trade_stops_level": info.trade_stops_level,
+                "trade_freeze_level": info.trade_freeze_level
+           }
+        }
+
+    def get_account_info(self):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        account = mt5.account_info()
+
+        if account is None:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": "Unable to fetch account information.",
+                "data": None
+            }
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": "Account information fetched successfully.",
+            "data": {
+                "login": account.login,
+                "server": account.server,
+                "name": account.name,
+                "balance": account.balance,
+                "equity": account.equity,
+                "margin": account.margin,
+                "free_margin": account.margin_free,
+                "margin_level": account.margin_level,
+                "leverage": account.leverage,
+                "currency": account.currency
+            }
+        }
+
+    def get_positions(self):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        positions = mt5.positions_get()
+
+        if positions is None:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": "Unable to fetch open positions.",
+                "data": None
+            }
+
+        data = []
+
+        for position in positions:
+
+            data.append({
+                "ticket": position.ticket,
+                "symbol": position.symbol,
+                "type": "BUY" if position.type == mt5.POSITION_TYPE_BUY else "SELL",
+                "volume": position.volume,
+                "price_open": position.price_open,
+                "price_current": position.price_current,
+                "sl": position.sl,
+                "tp": position.tp,
+                "profit": position.profit,
+                "swap": position.swap,
+                "magic": position.magic,
+                "comment": position.comment,
+                "time": position.time
+            })
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": f"{len(data)} open position(s) found.",
+            "data": data
+        }
 
     def get_candles(self, symbol, timeframe, count):
 
