@@ -6,6 +6,7 @@ from trading_engine import trading_engine
 from services.market_snapshot_builder import market_snapshot_builder
 from strategies.strategy_manager import StrategyManager
 from decision.decision_engine import decision_engine
+from risk.risk_engine import risk_engine
 
 app = Flask(__name__)
 
@@ -516,6 +517,62 @@ def order_history():
 
     if not result["success"]:
         return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/risk", methods=["GET"])
+def risk():
+
+    risk_percent = request.args.get("risk_percent")
+
+    if risk_percent is not None:
+        risk_percent = float(risk_percent)
+
+    result = risk_engine.calculate_risk(risk_percent)
+
+    return jsonify(result)
+
+@app.route("/lot-size", methods=["GET"])
+def lot_size():
+
+    symbol = request.args.get("symbol")
+
+    risk_percent = float(
+        request.args.get("risk_percent", 2)
+    )
+
+    stop_loss_pips = float(
+        request.args.get("stop_loss_pips")
+    )
+
+    result = risk_engine.calculate_lot_size(
+        symbol,
+        risk_percent,
+        stop_loss_pips
+    )
+
+    return jsonify(result)
+
+@app.route("/stop-loss", methods=["GET"])
+def stop_loss():
+
+    symbol = request.args.get("symbol")
+
+    timeframe = request.args.get("timeframe")
+
+    direction = request.args.get("direction")
+
+    multiplier = request.args.get("multiplier")
+
+    if multiplier is not None:
+        multiplier = float(multiplier)
+
+    result = risk_engine.calculate_stop_loss(
+        symbol,
+        timeframe,
+        direction,
+        multiplier
+    )
 
     return jsonify(result)
 
