@@ -576,6 +576,33 @@ def stop_loss():
 
     return jsonify(result)
 
+@app.route("/take-profit", methods=["GET"])
+def take_profit():
+
+    entry_price = float(
+        request.args.get("entry_price")
+    )
+
+    stop_loss = float(
+        request.args.get("stop_loss")
+    )
+
+    direction = request.args.get("direction")
+
+    risk_reward = request.args.get("risk_reward")
+
+    if risk_reward is not None:
+        risk_reward = float(risk_reward)
+
+    result = risk_engine.calculate_take_profit(
+        entry_price,
+        stop_loss,
+        direction,
+        risk_reward
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",

@@ -1,6 +1,7 @@
 from .risk_calculator import risk_calculator
 from .lot_size_calculator import lot_size_calculator
 from .stop_loss_engine import stop_loss_engine
+from .take_profit_engine import take_profit_engine
 
 
 class RiskEngine:
@@ -35,6 +36,21 @@ class RiskEngine:
             timeframe,
             direction,
             multiplier
+        )
+
+    def calculate_take_profit(
+        self,
+        entry_price,
+        stop_loss,
+        direction,
+        risk_reward=None
+    ):
+
+        return take_profit_engine.calculate(
+            entry_price,
+            stop_loss,
+            direction,
+            risk_reward
         )
 
 risk_engine = RiskEngine()
