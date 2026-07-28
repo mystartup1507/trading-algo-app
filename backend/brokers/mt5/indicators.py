@@ -16,6 +16,10 @@ class MT5Indicators:
 
         return market_service.get_positions()
 
+    def order_history(self):
+
+        return market_service.get_order_history()
+
     def market_order(
         self,
         symbol,
@@ -101,6 +105,35 @@ class MT5Indicators:
             comment,
             magic
         )
+
+    def get_pending_orders(self):
+
+        return execution_service.get_pending_orders()
+
+    def get_pending_order(self, ticket):
+
+        return execution_service.get_pending_order(ticket)
+
+    def modify_pending_order(self, ticket, price, sl=None, tp=None):
+
+        return execution_service.modify_pending_order(
+            ticket,
+            price,
+            sl,
+            tp
+        )
+
+    def cancel_pending_order(self, ticket):
+
+        return execution_service.cancel_pending_order(ticket)
+
+    def close_positions_by_symbol(self, symbol):
+
+        return execution_service.close_positions_by_symbol(symbol)
+
+    def close_all_positions(self):
+
+        return execution_service.close_all_positions()
 
     def rsi(self, symbol, timeframe, period):
 
@@ -359,6 +392,180 @@ class MT5Indicators:
                 "multiplier": multiplier,
                 "trend": latest["trend"],
                 "supertrend": round(float(latest["supertrend"]), 5)
+            }
+        }
+
+    def bollinger_bands(self, symbol, timeframe, period=20, deviation=2):
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            max(period + 100, 200)
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        if len(df) < period:
+            return {
+                "success": False,
+                "message": "Not enough candle data.",
+                "data": None
+            }
+
+        df["middle_band"] = df["close"].rolling(period).mean()
+
+        std = df["close"].rolling(period).std()
+
+        df["upper_band"] = df["middle_band"] + (std * deviation)
+        df["lower_band"] = df["middle_band"] - (std * deviation)
+
+        latest = df.iloc[-1]
+
+        return {
+            "success": True,
+            "message": "Bollinger Bands calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "period": period,
+                "deviation": deviation,
+                "upper_band": round(float(latest["upper_band"]), 5),
+                "middle_band": round(float(latest["middle_band"]), 5),
+                "lower_band": round(float(latest["lower_band"]), 5)
+            }
+        }
+
+    def vwap(self, symbol, timeframe):
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            200
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        if len(df) == 0:
+            return {
+                "success": False,
+                "message": "No candle data found.",
+                "data": None
+            }
+
+    # Typical Price
+        df["tp"] = (
+            df["high"] +
+            df["low"] +
+            df["close"]
+        ) / 3
+
+    # Price × Volume
+        df["tpv"] = df["tp"] * df["tick_volume"]
+
+    # Running VWAP
+        df["vwap"] = (
+            df["tpv"].cumsum() /
+            df["tick_volume"].cumsum()
+        )
+
+        latest = df.iloc[-1]
+
+        return {
+            "success": True,
+            "message": "VWAP calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "vwap": round(float(latest["vwap"]), 5),
+                "current_price": round(float(latest["close"]), 5)
+            }
+        }
+
+    def ichimoku(self, symbol, timeframe):
+
+        candles = market_service.get_candles(
+            symbol,
+            timeframe,
+            200
+        )
+
+        if not candles["success"]:
+            return candles
+
+        df = pd.DataFrame(candles["data"])
+
+        if len(df) < 52:
+
+            return {
+                "success": False,
+                "message": "Not enough candle data.",
+                "data": None
+            }
+
+    # Tenkan-sen (9)
+
+        tenkan_high = df["high"].rolling(9).max()
+        tenkan_low = df["low"].rolling(9).min()
+
+        df["tenkan"] = (
+            tenkan_high +
+            tenkan_low
+        ) / 2
+
+    # Kijun-sen (26)
+
+        kijun_high = df["high"].rolling(26).max()
+        kijun_low = df["low"].rolling(26).min()
+
+        df["kijun"] = (
+            kijun_high +
+            kijun_low
+        ) / 2
+
+    # Senkou Span A
+
+        df["senkou_a"] = (
+            (
+                df["tenkan"] +
+                df["kijun"]
+            ) / 2
+        ).shift(26)
+
+    # Senkou Span B
+
+        spanb_high = df["high"].rolling(52).max()
+        spanb_low = df["low"].rolling(52).min()
+
+        df["senkou_b"] = (
+            (
+                spanb_high +
+                spanb_low
+            ) / 2
+        ).shift(26)
+
+    # Chikou Span
+
+        df["chikou"] = df["close"].shift(-26)
+
+        latest = df.iloc[-27]
+
+        return {
+            "success": True,
+            "message": "Ichimoku calculated successfully.",
+            "data": {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "tenkan": round(float(latest["tenkan"]), 5),
+                "kijun": round(float(latest["kijun"]), 5),
+                "senkou_a": round(float(latest["senkou_a"]), 5),
+                "senkou_b": round(float(latest["senkou_b"]), 5),
+                "chikou": round(float(latest["chikou"]), 5)
             }
         }
 

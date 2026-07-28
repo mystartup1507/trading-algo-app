@@ -9,15 +9,15 @@ class EmaRsiAdxStrategy(BaseStrategy):
 
     def generate_signal(self, snapshot):
 
-    #
-    # Default
-    #
+        #
+        # Default
+        #
         snapshot.signal = "HOLD"
         snapshot.reason = "No valid trading setup."
 
-    #
-    # BUY
-    #
+        #
+        # BUY
+        #
         if (
             snapshot.trend.state == "UPTREND"
             and snapshot.momentum.state == "STRONG"
@@ -29,9 +29,9 @@ class EmaRsiAdxStrategy(BaseStrategy):
                 "Trend and Momentum are bullish."
             )
 
-    #
-    # SELL
-    #
+        #
+        # SELL
+        #
         elif (
             snapshot.trend.state == "DOWNTREND"
             and snapshot.momentum.state == "STRONG"
@@ -43,17 +43,25 @@ class EmaRsiAdxStrategy(BaseStrategy):
                 "Trend and Momentum are bearish."
             )
 
+        #
+        # Normalize confidence (0 - 100)
+        #
+        confidence = (
+            snapshot.trend.confidence
+            * snapshot.momentum.confidence
+        ) ** 0.5
+
+        confidence = round(confidence * 100, 2)
+
         return {
             "success": True,
             "message": self.config.STRATEGY_NAME,
             "data": {
+                "strategy": "EMA_RSI_ADX",
                 "signal": snapshot.signal,
                 "reason": snapshot.reason,
                 "trend": snapshot.trend.state,
                 "momentum": snapshot.momentum.state,
-                "confidence": (
-                    snapshot.trend.confidence
-                    * snapshot.momentum.confidence
-                ) ** 0.5
+                "confidence": confidence
             }
         }

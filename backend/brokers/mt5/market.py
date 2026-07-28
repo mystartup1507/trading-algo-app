@@ -291,4 +291,53 @@ class MT5Market:
             "data": candles
         }
 
+    def get_order_history(self):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        from datetime import datetime, timedelta
+
+        date_to = datetime.now()
+        date_from = date_to - timedelta(days=365)
+
+        deals = mt5.history_deals_get(date_from, date_to)
+
+        connector.disconnect()
+
+        if deals is None:
+
+            return {
+                "success": False,
+                "message": "Unable to fetch order history."
+            }
+
+        data = []
+
+        for deal in deals:
+
+            data.append({
+                "ticket": deal.ticket,
+                "order": deal.order,
+                "symbol": deal.symbol,
+                "type": deal.type,
+                "volume": deal.volume,
+                "price": deal.price,
+                "profit": deal.profit,
+                "commission": deal.commission,
+                "swap": deal.swap,
+                "time": deal.time,
+                "comment": deal.comment,
+                "magic": deal.magic
+            })
+
+        return {
+            "success": True,
+            "message": "Order history fetched successfully.",
+            "count": len(data),
+            "data": data
+        }
+
 market_service = MT5Market()

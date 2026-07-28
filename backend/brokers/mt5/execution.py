@@ -466,7 +466,291 @@ class MT5Execution:
         }
 
 
+    def get_pending_orders(self):
 
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        orders = mt5.orders_get()
+
+        connector.disconnect()
+
+        if orders is None:
+
+            return {
+                "success": False,
+                "message": "Unable to fetch pending orders."
+            }
+
+        pending_orders = []
+
+        for order in orders:
+
+            pending_orders.append({
+                "ticket": order.ticket,
+                "symbol": order.symbol,
+                "type": order.type,
+                "volume": order.volume_initial,
+                "price": order.price_open,
+                "sl": order.sl,
+                "tp": order.tp,
+                "comment": order.comment,
+                "magic": order.magic,
+                "time": order.time_setup
+            })
+
+        return {
+            "success": True,
+            "message": "Pending orders fetched successfully.",
+            "count": len(pending_orders),
+            "data": pending_orders
+        }
+
+    def get_pending_order(self, ticket):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        orders = mt5.orders_get(ticket=ticket)
+
+        connector.disconnect()
+
+        if not orders:
+
+            return {
+                "success": False,
+                "message": "Pending order not found."
+            }
+
+        order = orders[0]
+
+        return {
+            "success": True,
+            "message": "Pending order fetched successfully.",
+            "data": {
+                "ticket": order.ticket,
+                "symbol": order.symbol,
+                "type": order.type,
+                "volume": order.volume_initial,
+                "price": order.price_open,
+                "sl": order.sl,
+                "tp": order.tp,
+                "comment": order.comment,
+                "magic": order.magic,
+                "time": order.time_setup
+            }
+        }
+
+    def modify_pending_order(self, ticket, price, sl=None, tp=None):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        orders = mt5.orders_get(ticket=ticket)
+
+        if not orders:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": "Pending order not found."
+            }
+
+        order = orders[0]
+
+        request = {
+            "action": mt5.TRADE_ACTION_MODIFY,
+            "order": ticket,
+            "price": float(price),
+            "sl": order.sl if sl is None else float(sl),
+            "tp": order.tp if tp is None else float(tp)
+        }
+
+        result = mt5.order_send(request)
+
+        connector.disconnect()
+
+        if result is None:
+
+            return {
+                "success": False,
+                "message": "Unable to modify pending order."
+            }
+
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+
+            return {
+                "success": False,
+                "message": "Modify pending order failed.",
+                "retcode": result.retcode,
+                "comment": result.comment
+            }
+
+        return {
+            "success": True,
+            "message": "Pending order modified successfully."
+        }
+    def cancel_pending_order(self, ticket):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        request = {
+            "action": mt5.TRADE_ACTION_REMOVE,
+            "order": ticket
+        }
+
+        result = mt5.order_send(request)
+
+        connector.disconnect()
+
+        if result is None:
+
+            return {
+                "success": False,
+                "message": "Unable to cancel pending order."
+            }
+
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+
+            return {
+                "success": False,
+                "message": "Cancel pending order failed.",
+                "retcode": result.retcode,
+                "comment": result.comment
+            }
+
+        return {
+            "success": True,
+            "message": "Pending order cancelled successfully."
+        }
+
+    def close_positions_by_symbol(self, symbol):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        positions = mt5.positions_get(symbol=symbol)
+
+        if not positions:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": f"No open positions found for {symbol}."
+            }
+
+        closed = 0
+
+        for position in positions:
+
+            tick = mt5.symbol_info_tick(position.symbol)
+
+            if tick is None:
+                continue
+
+            if position.type == mt5.POSITION_TYPE_BUY:
+                order_type = mt5.ORDER_TYPE_SELL
+                price = tick.bid
+            else:
+                order_type = mt5.ORDER_TYPE_BUY
+                price = tick.ask
+
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "position": position.ticket,
+                "symbol": position.symbol,
+                "volume": position.volume,
+                "type": order_type,
+                "price": price,
+                "deviation": 20,
+                "magic": position.magic,
+                "comment": "JD-Algo Close By Symbol",
+                "type_time": mt5.ORDER_TIME_GTC
+            }
+
+            result = self.send_market_order(request)
+
+            if result and result.retcode == mt5.TRADE_RETCODE_DONE:
+                closed += 1
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": f"{closed} position(s) closed successfully."
+        }
+
+    def close_all_positions(self):
+
+        status = connector.connect()
+
+        if not status["success"]:
+            return status
+
+        positions = mt5.positions_get()
+
+        if not positions:
+
+            connector.disconnect()
+
+            return {
+                "success": False,
+                "message": "No open positions found."
+            }
+
+        closed = 0
+
+        for position in positions:
+
+            tick = mt5.symbol_info_tick(position.symbol)
+
+            if tick is None:
+                continue
+
+            if position.type == mt5.POSITION_TYPE_BUY:
+                order_type = mt5.ORDER_TYPE_SELL
+                price = tick.bid
+            else:
+                order_type = mt5.ORDER_TYPE_BUY
+                price = tick.ask
+
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "position": position.ticket,
+                "symbol": position.symbol,
+                "volume": position.volume,
+                "type": order_type,
+                "price": price,
+                "deviation": 20,
+                "magic": position.magic,
+                "comment": "JD-Algo Close All",
+                "type_time": mt5.ORDER_TIME_GTC
+            }
+
+            result = self.send_market_order(request)
+
+            if result and result.retcode == mt5.TRADE_RETCODE_DONE:
+                closed += 1
+
+        connector.disconnect()
+
+        return {
+            "success": True,
+            "message": f"{closed} position(s) closed successfully."
+        }
 
 
 execution_service = MT5Execution()

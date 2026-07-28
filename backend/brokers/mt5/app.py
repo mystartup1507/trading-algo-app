@@ -4,8 +4,12 @@ from market import market_service
 from indicators import indicator_service
 from trading_engine import trading_engine
 from services.market_snapshot_builder import market_snapshot_builder
+from strategies.strategy_manager import StrategyManager
+from decision.decision_engine import decision_engine
 
 app = Flask(__name__)
+
+strategy_manager = StrategyManager()
 
 @app.route("/health")
 def health():
@@ -94,6 +98,66 @@ def supertrend(symbol, timeframe, period, multiplier):
 
     return jsonify(result)
 
+@app.route("/bollinger-bands", methods=["GET"])
+def bollinger_bands():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe")
+    
+    print("SYMBOL:", symbol)
+    print("TIMEFRAME:", timeframe)    
+
+    period = int(request.args.get("period", 20))
+    deviation = float(request.args.get("deviation", 2))
+
+    result = indicator_service.bollinger_bands(
+        symbol,
+        timeframe,
+        period,
+        deviation
+    )
+
+    return jsonify(result)
+
+@app.route("/vwap", methods=["GET"])
+def vwap():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    result = indicator_service.vwap(
+        symbol,
+        timeframe
+    )
+
+    return jsonify(result)
+
+@app.route("/ichimoku", methods=["GET"])
+def ichimoku():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    result = indicator_service.ichimoku(
+        symbol,
+        timeframe
+    )
+
+    return jsonify(result)
+
+@app.route("/decision", methods=["GET"])
+def decision():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    result = decision_engine.analyze(
+        symbol,
+        timeframe
+    )
+
+    return jsonify(result)
+
 @app.route(
     "/indicator/macd/<symbol>/<timeframe>",
     methods=["GET"]
@@ -117,6 +181,91 @@ def adx(symbol, timeframe, period):
         symbol.upper(),
         timeframe.upper(),
         period
+    )
+
+    return jsonify(result)
+
+@app.route("/strategy/ema-crossover", methods=["GET"])
+def ema_crossover_strategy():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    strategy = strategy_manager.get_strategy("ema_crossover")
+
+    result = strategy.generate_signal(
+        symbol,
+        timeframe
+    )
+
+    return jsonify(result)
+
+@app.route("/strategy/macd", methods=["GET"])
+def macd_strategy():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    strategy = strategy_manager.get_strategy("macd")
+
+    result = strategy.generate_signal(
+        symbol,
+        timeframe
+    )
+
+    return jsonify(result)
+
+@app.route("/strategy/supertrend", methods=["GET"])
+def supertrend_strategy():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    period = int(request.args.get("period", 10))
+    multiplier = int(request.args.get("multiplier", 3))
+
+    strategy = strategy_manager.get_strategy("supertrend")
+
+    result = strategy.generate_signal(
+        symbol,
+        timeframe,
+        period,
+        multiplier
+    )
+
+    return jsonify(result)
+
+@app.route("/strategy/bollinger", methods=["GET"])
+def bollinger_strategy():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    period = int(request.args.get("period", 20))
+    deviation = float(request.args.get("deviation", 2))
+
+    strategy = strategy_manager.get_strategy("bollinger")
+
+    result = strategy.generate_signal(
+        symbol,
+        timeframe,
+        period,
+        deviation
+    )
+
+    return jsonify(result)
+
+@app.route("/strategy/ichimoku", methods=["GET"])
+def ichimoku_strategy():
+
+    symbol = request.args.get("symbol")
+    timeframe = request.args.get("timeframe", "").upper().strip()
+
+    strategy = strategy_manager.get_strategy("ichimoku")
+
+    result = strategy.generate_signal(
+        symbol,
+        timeframe
     )
 
     return jsonify(result)
@@ -279,6 +428,91 @@ def pending_order():
         comment=data.get("comment", "JD-Algo Pending"),
         magic=data.get("magic", 1001)
     )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/pending-orders", methods=["GET"])
+def get_pending_orders():
+
+    result = indicator_service.get_pending_orders()
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/pending-order/<int:ticket>", methods=["GET"])
+def get_pending_order(ticket):
+
+    result = indicator_service.get_pending_order(ticket)
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/modify-pending-order", methods=["POST"])
+def modify_pending_order():
+
+    data = request.get_json()
+
+    result = indicator_service.modify_pending_order(
+        ticket=data["ticket"],
+        price=data["price"],
+        sl=data.get("sl"),
+        tp=data.get("tp")
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/cancel-pending-order", methods=["POST"])
+def cancel_pending_order():
+
+    data = request.get_json()
+
+    result = indicator_service.cancel_pending_order(
+        ticket=data["ticket"]
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/close-positions-by-symbol", methods=["POST"])
+def close_positions_by_symbol():
+
+    data = request.get_json()
+
+    result = indicator_service.close_positions_by_symbol(
+        symbol=data["symbol"]
+    )
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/close-all-positions", methods=["POST"])
+def close_all_positions():
+
+    result = indicator_service.close_all_positions()
+
+    if not result["success"]:
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+@app.route("/order-history", methods=["GET"])
+def order_history():
+
+    result = indicator_service.order_history()
 
     if not result["success"]:
         return jsonify(result), 400

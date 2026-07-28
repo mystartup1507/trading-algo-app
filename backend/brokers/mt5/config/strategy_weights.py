@@ -1,0 +1,14 @@
+STRATEGY_WEIGHTS = {
+
+    "EMA_RSI_ADX": 1.50,
+
+    "SUPERTREND": 1.30,
+
+    "ICHIMOKU": 1.30,
+
+    "MACD": 1.20,
+
+    "EMA_CROSSOVER": 1.10,
+
+    "BOLLINGER_BANDS": 1.00
+}
