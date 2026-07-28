@@ -2,6 +2,7 @@ from .risk_calculator import risk_calculator
 from .lot_size_calculator import lot_size_calculator
 from .stop_loss_engine import stop_loss_engine
 from .take_profit_engine import take_profit_engine
+from .trade_validator import trade_validator
 
 
 class RiskEngine:
@@ -51,6 +52,23 @@ class RiskEngine:
             stop_loss,
             direction,
             risk_reward
+        )
+
+    def validate_trade(
+        self,
+        direction,
+        entry_price,
+        stop_loss,
+        take_profit,
+        lot_size
+    ):
+
+        return trade_validator.validate(
+            direction,
+            entry_price,
+            stop_loss,
+            take_profit,
+            lot_size
         )
 
 risk_engine = RiskEngine()

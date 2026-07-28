@@ -603,6 +603,37 @@ def take_profit():
 
     return jsonify(result)
 
+@app.route("/validate-trade", methods=["GET"])
+def validate_trade():
+
+    direction = request.args.get("direction")
+
+    entry_price = float(
+        request.args.get("entry_price")
+    )
+
+    stop_loss = float(
+        request.args.get("stop_loss")
+    )
+
+    take_profit = float(
+        request.args.get("take_profit")
+    )
+
+    lot_size = float(
+        request.args.get("lot_size")
+    )
+
+    result = risk_engine.validate_trade(
+        direction,
+        entry_price,
+        stop_loss,
+        take_profit,
+        lot_size
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
