@@ -7,6 +7,9 @@ from services.market_snapshot_builder import market_snapshot_builder
 from strategies.strategy_manager import StrategyManager
 from decision.decision_engine import decision_engine
 from risk.risk_engine import risk_engine
+from trade_execution.order_builder import order_builder
+from trade_execution.order_validator import order_validator
+from connector import connector
 
 app = Flask(__name__)
 
@@ -633,6 +636,106 @@ def validate_trade():
     )
 
     return jsonify(result)
+
+@app.route("/build-order", methods=["GET"])
+def build_order():
+
+    symbol = request.args.get("symbol")
+    direction = request.args.get("direction")
+
+    try:
+        lot_size = float(request.args.get("lot_size"))
+        stop_loss = float(request.args.get("stop_loss"))
+        take_profit = float(request.args.get("take_profit"))
+
+    except (TypeError, ValueError):
+        return jsonify({
+            "success": False,
+            "message": "Invalid or missing lot_size, stop_loss, or take_profit."
+        })
+
+    status = connector.connect()
+
+    if not status["success"]:
+        return jsonify(status)
+
+    try:
+
+        result = order_builder.build(
+            symbol,
+            direction,
+            lot_size,
+            stop_loss,
+            take_profit
+        )
+
+        return jsonify(result)
+
+    finally:
+        connector.disconnect()
+
+@app.route("/validate-order", methods=["GET"])
+def validate_order():
+
+    symbol = request.args.get("symbol")
+    direction = request.args.get("direction")
+
+    try:
+        lot_size = float(request.args.get("lot_size"))
+        stop_loss = float(request.args.get("stop_loss"))
+        take_profit = float(request.args.get("take_profit"))
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Invalid or missing lot_size, "
+                "stop_loss, or take_profit."
+            )
+        })
+
+    status = connector.connect()
+
+    if not status["success"]:
+        return jsonify(status)
+
+    try:
+
+        #
+        # Step 1 — Build order
+        #
+        build_result = order_builder.build(
+            symbol,
+            direction,
+            lot_size,
+            stop_loss,
+            take_profit
+        )
+
+        if not build_result["success"]:
+            return jsonify(build_result)
+
+        request_data = (
+            build_result["data"]["request"]
+        )
+
+        #
+        # Step 2 — Validate order
+        #
+        validation_result = (
+            order_validator.validate(
+                request_data
+            )
+        )
+
+        return jsonify(
+            validation_result
+        )
+
+    finally:
+
+        connector.disconnect()
 
 if __name__ == "__main__":
     app.run(
