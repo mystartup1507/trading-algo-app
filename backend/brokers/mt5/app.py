@@ -9,6 +9,7 @@ from decision.decision_engine import decision_engine
 from risk.risk_engine import risk_engine
 from trade_execution.order_builder import order_builder
 from trade_execution.order_validator import order_validator
+from trade_execution.execution_controller import execution_controller
 from connector import connector
 
 app = Flask(__name__)
@@ -736,6 +737,50 @@ def validate_order():
     finally:
 
         connector.disconnect()
+
+@app.route("/execute-dry-run", methods=["GET"])
+def execute_dry_run():
+
+    symbol = request.args.get("symbol")
+    direction = request.args.get("direction")
+
+    try:
+        lot_size = float(
+            request.args.get("lot_size")
+        )
+
+        stop_loss = float(
+            request.args.get("stop_loss")
+        )
+
+        take_profit = float(
+            request.args.get("take_profit")
+        )
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Invalid or missing lot_size, "
+                "stop_loss, or take_profit."
+            )
+        })
+
+    result = execution_controller.execute(
+        symbol=symbol,
+        direction=direction,
+        lot_size=lot_size,
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+
+        # SAFETY:
+        # This endpoint can NEVER execute
+        # a live MT5 order.
+        dry_run=True
+    )
+
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(
