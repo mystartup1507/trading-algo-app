@@ -13,6 +13,7 @@ from trade_execution.execution_controller import execution_controller
 from trade_execution.live_execution_guard import live_execution_guard
 from trade_execution.position_manager import position_manager
 from services.automated_trade_pipeline import automated_trade_pipeline
+from services.automatic_trading_engine import automatic_trading_engine
 from connector import connector
 
 app = Flask(__name__)
@@ -1025,6 +1026,46 @@ def automatic_trade_dry_run():
         risk_reward=risk_reward,
         dry_run=True
     )
+
+    return jsonify(result)
+
+
+
+# ==========================================================
+# PHASE 10.5 — AUTOMATIC TRADING CONTROL API
+# DRY-RUN ONLY
+# ==========================================================
+
+
+@app.route("/algo/start", methods=["POST"])
+def start_automatic_trading():
+
+    data = request.get_json(silent=True) or {}
+
+    result = automatic_trading_engine.start(
+        symbol=data.get("symbol"),
+        timeframe=data.get("timeframe"),
+        risk_percent=data.get("risk_percent"),
+        atr_multiplier=data.get("atr_multiplier"),
+        risk_reward=data.get("risk_reward"),
+        scan_interval=data.get("scan_interval")
+    )
+
+    return jsonify(result)
+
+
+@app.route("/algo/stop", methods=["POST"])
+def stop_automatic_trading():
+
+    result = automatic_trading_engine.stop()
+
+    return jsonify(result)
+
+
+@app.route("/algo/status", methods=["GET"])
+def automatic_trading_status():
+
+    result = automatic_trading_engine.status()
 
     return jsonify(result)
 
