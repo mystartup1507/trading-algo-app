@@ -11,6 +11,7 @@ from trade_execution.order_builder import order_builder
 from trade_execution.order_validator import order_validator
 from trade_execution.execution_controller import execution_controller
 from trade_execution.live_execution_guard import live_execution_guard
+from trade_execution.position_manager import position_manager
 from connector import connector
 
 app = Flask(__name__)
@@ -857,6 +858,101 @@ def execute_controlled_demo():
         # This is intentionally the live path.
         dry_run=False,
 
+        confirmation_token=confirmation_token
+    )
+
+    return jsonify(result)
+
+# ==========================================================
+# PHASE 9.5.1 — POSITION READER
+# ==========================================================
+
+
+@app.route("/position/<int:ticket>", methods=["GET"])
+def get_position(ticket):
+
+    result = position_manager.get_position(
+        ticket
+    )
+
+    return jsonify(result)
+
+
+@app.route("/positions", methods=["GET"])
+def get_open_positions():
+
+    result = position_manager.get_open_positions()
+
+    return jsonify(result)
+
+# ==========================================================
+# PHASE 9.5.2 — POSITION SL / TP MODIFICATION
+# ==========================================================
+
+
+@app.route("/position/<int:ticket>/modify", methods=["POST"])
+def modify_managed_position(ticket):
+
+    data = request.get_json(silent=True) or {}
+
+    stop_loss = data.get("stop_loss")
+    take_profit = data.get("take_profit")
+
+    if stop_loss is None and take_profit is None:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "At least one of stop_loss or "
+                "take_profit is required."
+            )
+        })
+
+    try:
+
+        if stop_loss is not None:
+            stop_loss = float(stop_loss)
+
+        if take_profit is not None:
+            take_profit = float(take_profit)
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "stop_loss and take_profit "
+                "must be valid numbers."
+            )
+        })
+
+    result = position_manager.modify_position(
+        ticket=ticket,
+        stop_loss=stop_loss,
+        take_profit=take_profit
+    )
+
+    return jsonify(result)
+
+# ==========================================================
+# PHASE 9.5.3 — CONTROLLED POSITION CLOSE
+# ==========================================================
+
+
+@app.route(
+    "/position/<int:ticket>/controlled-close",
+    methods=["POST"]
+)
+def controlled_close_position(ticket):
+
+    data = request.get_json(silent=True) or {}
+
+    confirmation_token = data.get(
+        "confirmation_token"
+    )
+
+    result = position_manager.controlled_close(
+        ticket=ticket,
         confirmation_token=confirmation_token
     )
 
