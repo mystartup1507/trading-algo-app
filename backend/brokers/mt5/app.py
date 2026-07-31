@@ -813,6 +813,55 @@ def test_live_guard():
 
     return jsonify(result)
 
+@app.route("/execute-controlled-demo", methods=["POST"])
+def execute_controlled_demo():
+
+    data = request.get_json(silent=True) or {}
+
+    symbol = data.get("symbol")
+    direction = data.get("direction")
+    confirmation_token = data.get(
+        "confirmation_token"
+    )
+
+    try:
+        lot_size = float(
+            data.get("lot_size")
+        )
+
+        stop_loss = float(
+            data.get("stop_loss")
+        )
+
+        take_profit = float(
+            data.get("take_profit")
+        )
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Invalid or missing lot_size, "
+                "stop_loss, or take_profit."
+            )
+        })
+
+    result = execution_controller.execute(
+        symbol=symbol,
+        direction=direction,
+        lot_size=lot_size,
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+
+        # This is intentionally the live path.
+        dry_run=False,
+
+        confirmation_token=confirmation_token
+    )
+
+    return jsonify(result)
+
 if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
