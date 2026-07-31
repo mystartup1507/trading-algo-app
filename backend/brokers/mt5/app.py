@@ -10,6 +10,7 @@ from risk.risk_engine import risk_engine
 from trade_execution.order_builder import order_builder
 from trade_execution.order_validator import order_validator
 from trade_execution.execution_controller import execution_controller
+from trade_execution.live_execution_guard import live_execution_guard
 from connector import connector
 
 app = Flask(__name__)
@@ -778,6 +779,36 @@ def execute_dry_run():
         # This endpoint can NEVER execute
         # a live MT5 order.
         dry_run=True
+    )
+
+    return jsonify(result)
+
+@app.route("/test-live-guard", methods=["GET"])
+def test_live_guard():
+
+    symbol = request.args.get("symbol")
+    direction = request.args.get("direction")
+    confirmation_token = request.args.get(
+        "confirmation_token"
+    )
+
+    try:
+        lot_size = float(
+            request.args.get("lot_size")
+        )
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid or missing lot_size."
+        })
+
+    result = live_execution_guard.validate(
+        symbol=symbol,
+        direction=direction,
+        lot_size=lot_size,
+        confirmation_token=confirmation_token
     )
 
     return jsonify(result)

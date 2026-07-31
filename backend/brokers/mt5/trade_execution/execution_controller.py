@@ -3,6 +3,7 @@ from execution import execution_service
 
 from .order_builder import order_builder
 from .order_validator import order_validator
+from .live_execution_guard import live_execution_guard
 
 
 class ExecutionController:
@@ -14,7 +15,8 @@ class ExecutionController:
         lot_size,
         stop_loss,
         take_profit,
-        dry_run=True
+        dry_run=True,
+        confirmation_token=None
     ):
 
         status = connector.connect()
@@ -64,9 +66,8 @@ class ExecutionController:
                     "data": {
                         "stage": "VALIDATION",
                         "dry_run": bool(dry_run),
-                        "validation": (
-                            validation_result
-                        )
+                        "executed": False,
+                        "validation": validation_result
                     }
                 }
 
@@ -101,23 +102,72 @@ class ExecutionController:
                 }
 
             # ---------------------------------
-            # Step 4 — LIVE EXECUTION
+            # Step 4 — LIVE EXECUTION GUARD
             # ---------------------------------
             #
-            # This section is unreachable while
-            # dry_run=True.
+            # Even if dry_run=False is passed,
+            # execution cannot continue unless
+            # the Live Execution Guard approves
+            # the request.
             #
-            # We deliberately use the existing,
-            # previously working execution.py
-            # service rather than creating another
-            # MT5 order sender.
+            # LIVE_TRADING_ENABLED is currently
+            # False inside live_execution_guard.py
+            # so live execution remains blocked.
+            # ---------------------------------
+
+            guard_result = (
+                live_execution_guard.validate(
+                    symbol=symbol,
+                    direction=direction,
+                    lot_size=lot_size,
+                    confirmation_token=(
+                        confirmation_token
+                    )
+                )
+            )
+
+            if not guard_result["success"]:
+
+                return {
+                    "success": False,
+                    "message": (
+                        "Live execution blocked by "
+                        "execution safety guard."
+                    ),
+                    "data": {
+                        "stage": (
+                            "LIVE_EXECUTION_GUARD"
+                        ),
+                        "dry_run": False,
+                        "executed": False,
+                        "guard": (
+                            guard_result["data"]
+                        )
+                    }
+                }
+
+            # ---------------------------------
+            # Step 5 — LIVE EXECUTION
+            # ---------------------------------
+            #
+            # This section can only be reached
+            # when:
+            #
+            # 1. Order Builder succeeds
+            # 2. Order Validator succeeds
+            # 3. dry_run is False
+            # 4. Live Execution Guard succeeds
+            #
+            # Existing execution.py is reused.
             # ---------------------------------
 
             execution_result = (
                 execution_service.market_order(
                     symbol=symbol,
                     volume=float(lot_size),
-                    order_type=str(direction).upper(),
+                    order_type=(
+                        str(direction).upper()
+                    ),
                     sl=float(stop_loss),
                     tp=float(take_profit),
                     comment="JD-Algo",
@@ -125,13 +175,19 @@ class ExecutionController:
                 )
             )
 
+            # ---------------------------------
+            # Step 6 — Standard execution result
+            # ---------------------------------
+
+            execution_success = (
+                execution_result.get(
+                    "success",
+                    False
+                )
+            )
+
             return {
-                "success": (
-                    execution_result.get(
-                        "success",
-                        False
-                    )
-                ),
+                "success": execution_success,
                 "message": (
                     execution_result.get(
                         "message",
@@ -141,12 +197,7 @@ class ExecutionController:
                 "data": {
                     "stage": "LIVE_EXECUTION",
                     "dry_run": False,
-                    "executed": (
-                        execution_result.get(
-                            "success",
-                            False
-                        )
-                    ),
+                    "executed": execution_success,
                     "execution": execution_result
                 }
             }
