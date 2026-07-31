@@ -12,6 +12,7 @@ from trade_execution.order_validator import order_validator
 from trade_execution.execution_controller import execution_controller
 from trade_execution.live_execution_guard import live_execution_guard
 from trade_execution.position_manager import position_manager
+from services.automated_trade_pipeline import automated_trade_pipeline
 from connector import connector
 
 app = Flask(__name__)
@@ -954,6 +955,75 @@ def controlled_close_position(ticket):
     result = position_manager.controlled_close(
         ticket=ticket,
         confirmation_token=confirmation_token
+    )
+
+    return jsonify(result)
+
+# ==========================================================
+# PHASE 10 — AUTOMATIC TRADING PIPELINE
+# DRY-RUN ONLY
+# ==========================================================
+
+
+@app.route("/automatic-trade-dry-run", methods=["GET"])
+def automatic_trade_dry_run():
+
+    symbol = request.args.get(
+        "symbol",
+        "EURUSD#"
+    )
+
+    timeframe = request.args.get(
+        "timeframe",
+        "M15"
+    )
+
+    try:
+
+        risk_percent = float(
+            request.args.get(
+                "risk_percent",
+                1.0
+            )
+        )
+
+        atr_multiplier = float(
+            request.args.get(
+                "atr_multiplier",
+                2.0
+            )
+        )
+
+        risk_reward = float(
+            request.args.get(
+                "risk_reward",
+                2.0
+            )
+        )
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "risk_percent, atr_multiplier "
+                "and risk_reward must be numbers."
+            )
+        })
+
+    # --------------------------------------------------
+    # SAFETY:
+    # dry_run is intentionally hard-coded True.
+    # This endpoint cannot request live execution.
+    # --------------------------------------------------
+
+    result = automated_trade_pipeline.run(
+        symbol=symbol,
+        timeframe=timeframe,
+        risk_percent=risk_percent,
+        atr_multiplier=atr_multiplier,
+        risk_reward=risk_reward,
+        dry_run=True
     )
 
     return jsonify(result)
