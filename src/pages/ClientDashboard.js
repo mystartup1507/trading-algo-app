@@ -93,132 +93,181 @@ const ClientDashboard = () => {
 
   }, [selectedMarket]);
 
-  const connectBroker = async () => {
+const connectBroker = async () => {
 
-    try {
+  try {
 
-      if (
-        !connectionData.clientId ||
-        !connectionData.password
-      ) {
+    if (
+      !connectionData.clientId ||
+      !connectionData.password
+    ) {
 
-        alert(
-          'Please fill broker credentials'
-        );
-
-        return;
-
-      }
-
-      const response =
-        await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/connect',
-          {
-            method: 'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-
-            body: JSON.stringify({
-
-              apiKey:
-                'QTgnsVLk',
-
-              broker:
-                selectedBroker,
-
-              clientId:
-                connectionData.clientId,
-
-              password:
-                connectionData.password,
-
-              totp:
-                connectionData.totp
-
-            })
-
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) {
-
-        alert(data.message);
-        return;
-
-      }
-
-      localStorage.setItem(
-        'brokerConnection',
-        'true'
+      alert(
+        'Please fill broker credentials'
       );
 
-      setBrokerConnected(true);
+      return;
 
-      const profileResponse =
-        await fetch(
-          'https://jdalgoapi.duckdns.org/api/broker/profile',
-          {
-            method: 'POST',
+    }
 
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
+    if (
+      selectedBroker === 'mt5' &&
+      !connectionData.server
+    ) {
 
-            body: JSON.stringify({
+      alert(
+        'Please enter MT5 Server Name'
+      );
 
-              apiKey:
-                'QTgnsVLk',
+      return;
 
-              clientId:
-                connectionData.clientId,
+    }
 
-              password:
-                connectionData.password,
+    const response =
+      await fetch(
+        'https://jdalgoapi.duckdns.org/api/broker/connect',
+        {
+          method: 'POST',
 
-              totp:
-                connectionData.totp
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
 
-            })
+          body: JSON.stringify({
 
-          }
-        );
+            apiKey:
+              'QTgnsVLk',
 
-      const profileData =
-        await profileResponse.json();
+            licenseKey:
+              localStorage.getItem('licenseKey'),
 
-      if (profileData.success) {
+            broker:
+              selectedBroker,
+
+            clientId:
+              connectionData.clientId,
+
+            password:
+              connectionData.password,
+
+            totp:
+              connectionData.totp,
+
+            server:
+              connectionData.server
+
+          })
+
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+
+      alert(data.message);
+      return;
+
+    }
+
+    localStorage.setItem(
+      'brokerConnection',
+      'true'
+    );
+
+    setBrokerConnected(true);
+
+    /*
+     * --------------------------------------------------
+     * FOREX / MT5
+     * --------------------------------------------------
+     */
+
+    if (selectedBroker === 'mt5') {
 
       setAvailableBalance(
-          profileData.rms?.data?.availablecash || 0
-        );
-
-      }
-
-      setPositions([]);
-setRunningTrades(0);
-
-      alert(
-        'Broker Connected Successfully'
+        data.data?.balance || 0
       );
 
-    } catch (error) {
-
-      console.log(error);
+      setPositions([]);
+      setRunningTrades(0);
 
       alert(
-        'Connection Error'
+        'MT5 Broker Connected Successfully'
+      );
+
+      return;
+
+    }
+
+    /*
+     * --------------------------------------------------
+     * INDIAN / ANGEL ONE
+     * Existing profile flow preserved
+     * --------------------------------------------------
+     */
+
+    const profileResponse =
+      await fetch(
+        'https://jdalgoapi.duckdns.org/api/broker/profile',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body: JSON.stringify({
+
+            apiKey:
+              'QTgnsVLk',
+
+            clientId:
+              connectionData.clientId,
+
+            password:
+              connectionData.password,
+
+            totp:
+              connectionData.totp
+
+          })
+
+        }
+      );
+
+    const profileData =
+      await profileResponse.json();
+
+    if (profileData.success) {
+
+      setAvailableBalance(
+        profileData.rms?.data?.availablecash || 0
       );
 
     }
 
-  };
+    setPositions([]);
+    setRunningTrades(0);
+
+    alert(
+      'Broker Connected Successfully'
+    );
+
+  } catch (error) {
+
+    console.log(error);
+
+    alert(
+      'Connection Error'
+    );
+
+  }
+
+};
 
   const disconnectBroker = () => {
 

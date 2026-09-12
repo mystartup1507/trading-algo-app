@@ -473,6 +473,7 @@ app.post(
 
   }
 );
+
 app.post(
   '/api/broker/connect',
   async (req, res) => {
@@ -483,8 +484,165 @@ app.post(
         broker,
         clientId,
         password,
-        totp
+        totp,
+        server,
+        licenseKey
       } = req.body;
+
+      /*
+       * --------------------------------------------------
+       * FOREX / MT5
+       * --------------------------------------------------
+       */
+
+      if (broker === 'mt5') {
+
+        if (
+          !licenseKey ||
+          !licenseKey.trim()
+        ) {
+
+          return res.status(403).json({
+            success: false,
+            message: 'License key required'
+          });
+
+        }
+
+        const {
+          data: license,
+          error: licenseError
+        } = await supabase
+          .from('licenses')
+          .select('*')
+          .eq(
+            'license_key',
+            licenseKey.trim()
+          )
+          .single();
+
+        if (
+          licenseError ||
+          !license
+        ) {
+
+          return res.status(404).json({
+            success: false,
+            message: 'Invalid License'
+          });
+
+        }
+
+        if (
+          license.is_active === false
+        ) {
+
+          return res.status(403).json({
+            success: false,
+            message: 'License Revoked'
+          });
+
+        }
+
+        if (
+          license.expires_at
+        ) {
+
+          const currentDate =
+            new Date();
+
+          const expiryDate =
+            new Date(
+              license.expires_at
+            );
+
+          if (
+            expiryDate < currentDate
+          ) {
+
+            return res.status(403).json({
+              success: false,
+              message: 'License Expired'
+            });
+
+          }
+
+        }
+
+        if (
+          !clientId ||
+          !password ||
+          !server
+        ) {
+
+          return res.status(400).json({
+            success: false,
+            message:
+              'MT5 Login ID, password and server are required.'
+          });
+
+        }
+
+        const mt5Response =
+          await fetch(
+            'http://127.0.0.1:5001/connect',
+            {
+              method: 'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+
+              body: JSON.stringify({
+
+                login:
+                  clientId,
+
+                password:
+                  password,
+
+                server:
+                  server
+
+              })
+            }
+          );
+
+        const mt5Data =
+          await mt5Response.json();
+
+        if (
+          !mt5Data.success
+        ) {
+
+          return res.status(400).json({
+            success: false,
+            message:
+              mt5Data.message ||
+              'MT5 connection failed.',
+            error:
+              mt5Data.error || null
+          });
+
+        }
+
+        return res.json({
+          success: true,
+          message:
+            'MT5 Broker Connected Successfully',
+          data:
+            mt5Data.data
+        });
+
+      }
+
+      /*
+       * --------------------------------------------------
+       * INDIAN / ANGEL ONE
+       * Existing flow preserved
+       * --------------------------------------------------
+       */
 
       if (
         broker !== 'angel'
@@ -492,63 +650,14 @@ app.post(
 
         return res.status(400).json({
           success: false,
-          message: 'Only Angel supported currently'
+          message:
+            'Unsupported broker'
         });
 
       }
 
       const result =
         await connectAngelBroker({
-          apiKey:
-            process.env.ANGEL_API_KEY,
-          clientId,
-          password,
-          totp
-        });
-
-      if (!result.success) {
-
-        return res.status(400).json({
-          success: false,
-          message: result.message
-        });
-
-      }
-
-      return res.json({
-        success: true,
-        message:
-          'Broker Connected',
-        data: result.data
-      });
-
-    } catch (error) {
-
-      return res.status(500).json({
-        success: false,
-        message:
-          error.message
-      });
-
-    }
-
-  }
-);
-
-app.post(
-  '/api/broker/profile',
-  async (req, res) => {
-
-    try {
-
-      const {
-        clientId,
-        password,
-        totp
-      } = req.body;
-
-      const result =
-        await getProfileData({
           apiKey:
             process.env.ANGEL_API_KEY,
           clientId,
@@ -568,10 +677,10 @@ app.post(
 
       return res.json({
         success: true,
-        profile:
-          result.profile,
-        rms:
-          result.rms
+        message:
+          'Broker Connected',
+        data:
+          result.data
       });
 
     } catch (error) {
@@ -586,7 +695,6 @@ app.post(
 
   }
 );
-
 
 app.post('/api/broker/positions', async (req, res) => {
   try {

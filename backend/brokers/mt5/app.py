@@ -27,6 +27,63 @@ def health():
         "message": "MT5 Bridge Running"
     })
 
+@app.route("/connect", methods=["POST"])
+def connect_mt5():
+
+    data = request.get_json(silent=True) or {}
+
+    login = data.get("login")
+    password = data.get("password")
+    server = data.get("server")
+
+    if not login or not password or not server:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Login ID, password and MT5 server "
+                "are required."
+            )
+        }), 400
+
+    configuration = connector.configure(
+        login=login,
+        password=password,
+        server=server
+    )
+
+    if not configuration["success"]:
+
+        return jsonify(configuration), 400
+
+    result = connector.connect()
+
+    if not result["success"]:
+
+        connector.clear_configuration()
+
+        return jsonify({
+            "success": False,
+            "message": "MT5 connection failed.",
+            "error": result.get("error")
+        }), 400
+
+    account = result.get("account")
+
+    return jsonify({
+        "success": True,
+        "message": "MT5 account connected successfully.",
+        "data": {
+            "login": getattr(account, "login", None),
+            "server": getattr(account, "server", None),
+            "company": getattr(account, "company", None),
+            "currency": getattr(account, "currency", None),
+            "balance": getattr(account, "balance", None),
+            "equity": getattr(account, "equity", None),
+            "leverage": getattr(account, "leverage", None)
+        }
+    })
+
 @app.route("/account")
 def account():
 
@@ -375,22 +432,19 @@ def get_positions():
 @app.route("/market-order", methods=["POST"])
 def market_order():
 
-    data = request.get_json()
-
-    result = indicator_service.market_order(
-        symbol=data["symbol"],
-        volume=data["volume"],
-        order_type=data["order_type"],
-        sl=data.get("sl", 0.0),
-        tp=data.get("tp", 0.0),
-        comment=data.get("comment", "JD-Algo"),
-        magic=data.get("magic", 1001)
-    )
-
-    if not result["success"]:
-        return jsonify(result), 400
-
-    return jsonify(result)
+    return jsonify({
+        "success": False,
+        "message": (
+            "Direct market-order execution is disabled. "
+            "Live orders must pass through the controlled "
+            "JD-Algo execution pipeline."
+        ),
+        "data": {
+            "allowed": False,
+            "endpoint": "/market-order",
+            "execution_path": "BLOCKED_LEGACY_DIRECT_EXECUTION"
+        }
+    }), 403
 
 @app.route("/close-position", methods=["POST"])
 def close_position():
@@ -466,33 +520,32 @@ def get_pending_order(ticket):
 @app.route("/modify-pending-order", methods=["POST"])
 def modify_pending_order():
 
-    data = request.get_json()
-
-    result = indicator_service.modify_pending_order(
-        ticket=data["ticket"],
-        price=data["price"],
-        sl=data.get("sl"),
-        tp=data.get("tp")
-    )
-
-    if not result["success"]:
-        return jsonify(result), 400
-
-    return jsonify(result)
+    return jsonify({
+        "success": False,
+        "message": (
+            "Pending-order modification is temporarily "
+            "disabled until the secured execution pipeline "
+            "is completed."
+        ),
+        "data": {
+            "endpoint": "/modify-pending-order"
+        }
+    }), 403
 
 @app.route("/cancel-pending-order", methods=["POST"])
 def cancel_pending_order():
 
-    data = request.get_json()
-
-    result = indicator_service.cancel_pending_order(
-        ticket=data["ticket"]
-    )
-
-    if not result["success"]:
-        return jsonify(result), 400
-
-    return jsonify(result)
+    return jsonify({
+        "success": False,
+        "message": (
+            "Pending-order cancellation is temporarily "
+            "disabled until the secured execution pipeline "
+            "is completed."
+        ),
+        "data": {
+            "endpoint": "/cancel-pending-order"
+        }
+    }), 403
 
 @app.route("/close-positions-by-symbol", methods=["POST"])
 def close_positions_by_symbol():
@@ -1048,7 +1101,8 @@ def start_automatic_trading():
         risk_percent=data.get("risk_percent"),
         atr_multiplier=data.get("atr_multiplier"),
         risk_reward=data.get("risk_reward"),
-        scan_interval=data.get("scan_interval")
+        scan_interval=data.get("scan_interval"),
+        dry_run=data.get("dry_run", True)
     )
 
     return jsonify(result)

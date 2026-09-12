@@ -5,6 +5,12 @@ from datetime import datetime, timezone
 
 from services.automated_trade_pipeline import automated_trade_pipeline
 from trade_execution.trade_lifecycle_manager import trade_lifecycle_manager
+from risk.trading_session_manager import trading_session_manager
+from risk.spread_guard import spread_guard
+from risk.trade_cooldown_manager import trade_cooldown_manager
+from risk.daily_risk_manager import daily_risk_manager
+from risk.daily_profit_loss_guard import daily_profit_loss_guard
+from risk.max_open_positions_guard import max_open_positions_guard
 
 
 class AutomaticTradingEngine:
@@ -137,7 +143,8 @@ class AutomaticTradingEngine:
         risk_percent,
         atr_multiplier,
         risk_reward,
-        scan_interval
+        scan_interval,
+        dry_run=True
     ):
 
         symbol = self._normalize_symbol(symbol)
@@ -246,7 +253,7 @@ class AutomaticTradingEngine:
             "atr_multiplier": atr_multiplier,
             "risk_reward": risk_reward,
             "scan_interval": scan_interval,
-            "dry_run": True
+            "dry_run": bool(dry_run)
         }
 
         return {
@@ -378,6 +385,117 @@ class AutomaticTradingEngine:
             symbol = config["symbol"]
 
             # --------------------------------------------------
+# Trading Session Validation
+# --------------------------------------------------
+
+            session_result = trading_session_manager.validate(
+                symbol
+            )
+
+            if not session_result["data"]["allowed"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Trading Session Manager.",
+                    "data": {
+                        "stage": "SESSION_FILTER",
+                        "executed": False,
+                        "session": session_result["data"]
+                     }
+                }
+
+             # --------------------------------------------------
+# Spread Validation
+# --------------------------------------------------
+
+            spread_result = spread_guard.validate(
+                symbol
+            )
+
+            if not spread_result["success"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Spread Guard.",
+                    "data": {
+                        "stage": "SPREAD_FILTER",
+                        "executed": False,
+                        "spread": spread_result.get("data")
+                     }
+                }
+
+               # --------------------------------------------------
+# Trade Cooldown Validation
+# --------------------------------------------------
+
+            cooldown_result = trade_cooldown_manager.validate()
+
+            if not cooldown_result["success"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Trade Cooldown Manager.",
+                    "data": {
+                        "stage": "COOLDOWN_FILTER",
+                        "executed": False,
+                        "cooldown": cooldown_result["data"]
+                     }
+                }
+  # --------------------------------------------------
+# Daily Risk Validation
+# --------------------------------------------------
+
+            daily_risk_result = daily_risk_manager.validate()
+
+            if not daily_risk_result["success"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Daily Risk Manager.",
+                    "data": {
+                        "stage": "DAILY_RISK_FILTER",
+                        "executed": False,
+                        "daily_risk": daily_risk_result["data"]
+                     }
+                }
+
+# --------------------------------------------------
+# Daily Profit/Loss Validation
+# --------------------------------------------------
+
+            daily_pnl_result = daily_profit_loss_guard.validate()
+
+            if not daily_pnl_result["success"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Daily Profit/Loss Guard.",
+                    "data": {
+                        "stage": "DAILY_PNL_FILTER",
+                        "executed": False,
+                        "daily_pnl": daily_pnl_result["data"]
+                     }
+                }
+
+# --------------------------------------------------
+# Maximum Open Positions Validation
+# --------------------------------------------------
+
+            position_result = max_open_positions_guard.validate()
+
+            if not position_result["success"]:
+
+                return {
+                    "success": True,
+                    "message": "Automatic scan skipped by Maximum Open Positions Guard.",
+                    "data": {
+                        "stage": "MAX_OPEN_POSITION_FILTER",
+                        "executed": False,
+                        "position_guard": position_result["data"]
+                     }
+                }
+
+            # --------------------------------------------------
             # Recover lifecycle from MT5 before each scan.
             #
             # MT5 remains the source of truth.
@@ -434,7 +552,7 @@ class AutomaticTradingEngine:
                     "atr_multiplier"
                 ],
                 risk_reward=config["risk_reward"],
-                dry_run=True
+                dry_run=config["dry_run"]
             )
 
             return result
@@ -703,7 +821,8 @@ class AutomaticTradingEngine:
         risk_percent=None,
         atr_multiplier=None,
         risk_reward=None,
-        scan_interval=None
+        scan_interval=None,
+        dry_run=True
     ):
 
         config_result = self._build_config(
@@ -712,7 +831,8 @@ class AutomaticTradingEngine:
             risk_percent=risk_percent,
             atr_multiplier=atr_multiplier,
             risk_reward=risk_reward,
-            scan_interval=scan_interval
+            scan_interval=scan_interval,
+            dry_run=dry_run,
         )
 
         if not config_result["success"]:
@@ -808,11 +928,17 @@ class AutomaticTradingEngine:
 
             data = self._status_data_locked()
 
+        mode = (
+            "DRY-RUN"
+            if data["config"]["dry_run"]
+            else "LIVE"
+        )
+
         return {
             "success": True,
             "message": (
-                "Automatic trading engine started "
-                "in DRY-RUN mode."
+                f"Automatic trading engine started "
+                f"in {mode} mode."
             ),
             "data": data
         }
@@ -906,7 +1032,11 @@ class AutomaticTradingEngine:
 
         return {
             "running": bool(self._running),
-            "mode": "DRY_RUN",
+            "mode": (
+                "DRY_RUN"
+                if self._config.get("dry_run", True)
+                else "LIVE"
+             ),
             "run_id": self._run_id,
             "config": dict(self._config),
 
